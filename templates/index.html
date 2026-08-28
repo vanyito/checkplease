@@ -1523,9 +1523,14 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
 
   <!-- CTA -->
   <div class="cta-bar">
-    <button class="btn-share2" style="width:100%;margin-bottom:10px;" onclick="shareOrCopyLink()">
-      <span>🔗</span> <span id="collabShareLabel">Compartir cuenta</span>
-    </button>
+    <div class="summary-actions">
+      <button class="btn-share2" onclick="shareOrCopyLink()">
+        <span>🔗</span> <span id="collabShareLabel">Compartir cuenta</span>
+      </button>
+      <button class="btn-share2" onclick="showQrCode()">
+        <span>📱</span> QR
+      </button>
+    </div>
     <button class="btn-primary" id="reviewBtn" onclick="openSummary()">
       <span id="reviewLabel">Ver resumen</span>
     </button>

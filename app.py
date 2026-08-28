@@ -13,6 +13,7 @@ Sirve la aplicación y expone los endpoints:
                                de solo lectura.
   - /api/history           -> lista las cuentas creadas por este visitante
   - /api/scan-receipt      -> OCR de una foto de boleta con Tesseract (Fase 3)
+  - /api/qr                -> código QR (PNG) de un link para compartir
 
 Persistencia con SQLite en desarrollo / PostgreSQL en producción (ver
 db.py), identificando al visitante con una cookie anónima (cp_visitor)
@@ -22,11 +23,14 @@ Tesseract instalado en el sistema (ver README).
 """
 
 import os
+import io
 import time
 import urllib.request
 import json
 import uuid
-from flask import Flask, render_template, jsonify, request, g
+from flask import Flask, render_template, jsonify, request, g, Response
+
+import qrcode
 
 import db
 import ocr
@@ -295,6 +299,30 @@ def api_finalize_bill(share_id):
     if not ok:
         return jsonify({"error": "Esta cuenta no existe."}), 404
     return jsonify({"ok": True, "url": f"/s/{share_id}"})
+
+
+# ──────────────────────────────────────────────────────────
+#  ENDPOINT: GET /api/qr — código QR de un link para compartir
+# ──────────────────────────────────────────────────────────
+
+MAX_QR_DATA_LENGTH = 500  # nuestros links son cortos; esto solo evita abuso
+
+
+@app.route("/api/qr")
+def api_qr():
+    """
+    Genera un código QR en PNG a partir de texto (normalmente la URL de
+    /s/<share_id>). Todo en memoria, no se guarda nada a disco.
+    """
+    data = request.args.get("data", "")
+    if not data or len(data) > MAX_QR_DATA_LENGTH:
+        return jsonify({"error": "Parámetro 'data' inválido"}), 400
+
+    img = qrcode.make(data)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return Response(buf.getvalue(), mimetype="image/png")
 
 
 # ──────────────────────────────────────────────────────────

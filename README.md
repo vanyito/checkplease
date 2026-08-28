@@ -190,6 +190,11 @@ mismo link `/s/<share_id>` siempre muestra el resumen de solo lectura
 Un link finalizado no se puede reabrir para seguir editando — hay que
 crear una cuenta nueva si hace falta agregar algo después.
 
+El botón **"QR"** genera un código QR real (`/api/qr`, con la librería
+`qrcode`) del mismo link — útil para compartirlo en persona sin escribir
+la URL. Apunta al mismo `share_id` que el botón "Link"; no crea una
+cuenta distinta.
+
 ---
 
 ## 🚀 Deploy a producción (Render)

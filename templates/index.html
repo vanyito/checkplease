@@ -1602,7 +1602,7 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
       </button>
       <div class="summary-actions">
         <button class="btn-share2" onclick="shareOrCopyLink()"><span>🔗</span> <span id="shareLabel">Link</span></button>
-        <button class="btn-share2" onclick="shareOrCopyLink()"><span>📱</span> QR</button>
+        <button class="btn-share2" onclick="showQrCode()"><span>📱</span> QR</button>
       </div>
       <button class="btn-close-summary" onclick="closeSummary()" id="closeSummaryLabel">Cerrar</button>
     </div>
@@ -1618,6 +1618,22 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
     <div class="summary-list" id="historyList"></div>
     <div class="summary-footer">
       <button class="btn-close-summary" onclick="closeHistory()" id="closeHistoryLabel">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div class="summary-overlay" id="qrModal">
+  <div class="summary-card" style="text-align:center;">
+    <div class="summary-header">
+      <div class="summary-title" id="qrTitle">Código QR</div>
+    </div>
+    <div style="padding:28px 24px;">
+      <img id="qrImage" src="" alt="QR" width="220" height="220" style="border-radius:14px;background:#fff;padding:14px;"/>
+      <div id="qrLinkText" style="margin-top:16px;font-size:12px;color:var(--ink-faint);word-break:break-all;"></div>
+    </div>
+    <div class="summary-footer">
+      <button class="btn-close-summary" onclick="closeQrModal()" id="closeQrLabel">Cerrar</button>
     </div>
   </div>
 </div>
@@ -1717,7 +1733,8 @@ const I18N = {
     collabShareLabel: 'Compartir cuenta',
     collabLoaded: 'Te uniste a una cuenta compartida — recarga para ver cambios de otros',
     billFinalizedMsg: 'Esta cuenta ya fue finalizada, no se pueden agregar más cambios',
-    finalizeLabel: 'Terminar y compartir resultado'
+    finalizeLabel: 'Terminar y compartir resultado',
+    qrTitle: 'Código QR'
   },
   en: {
     tagline: 'Split the bill, not the friendship',
@@ -1758,7 +1775,8 @@ const I18N = {
     collabShareLabel: 'Share bill',
     collabLoaded: "You joined a shared bill — reload to see others' changes",
     billFinalizedMsg: 'This bill was already finalized, no more changes allowed',
-    finalizeLabel: 'Finish & share result'
+    finalizeLabel: 'Finish & share result',
+    qrTitle: 'QR code'
   },
   pt: {
     tagline: 'Dividimos a conta, não a amizade',
@@ -1799,7 +1817,8 @@ const I18N = {
     collabShareLabel: 'Compartilhar conta',
     collabLoaded: 'Você entrou numa conta compartilhada — recarregue para ver mudanças de outros',
     billFinalizedMsg: 'Esta conta já foi finalizada, não são permitidas mais alterações',
-    finalizeLabel: 'Terminar e compartilhar resultado'
+    finalizeLabel: 'Terminar e compartilhar resultado',
+    qrTitle: 'Código QR'
   },
   fr: {
     tagline: "Partagez l'addition, pas l'amitié",
@@ -1840,7 +1859,8 @@ const I18N = {
     collabShareLabel: "Partager l'addition",
     collabLoaded: "Vous avez rejoint une addition partagée — rechargez pour voir les changements des autres",
     billFinalizedMsg: "Cette addition est déjà terminée, plus de changements possibles",
-    finalizeLabel: 'Terminer et partager le résultat'
+    finalizeLabel: 'Terminer et partager le résultat',
+    qrTitle: 'Code QR'
   }
 };
 
@@ -1994,6 +2014,8 @@ function applyLang() {
   document.getElementById('scanConfirmLabel').textContent = t('scanConfirmLabel');
   document.getElementById('collabShareLabel').textContent = t('collabShareLabel');
   document.getElementById('finalizeLabel').textContent = t('finalizeLabel');
+  document.getElementById('qrTitle').textContent = t('qrTitle');
+  document.getElementById('closeQrLabel').textContent = t('close');
 }
 
 // ═══════════════ PEOPLE ═══════════════
@@ -2398,37 +2420,57 @@ function buildSharePayload() {
 // copiar si ya existe. Es la misma función para el botón "Compartir
 // cuenta" del inicio y los botones "Link"/"QR" del resumen — apenas hay
 // un share_id, ambos apuntan al mismo link colaborativo.
-async function shareOrCopyLink() {
-  if (!currentShareId) {
-    try {
-      const res = await fetch('/api/bills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: '',
-          currency: currencyCode,
-          lang: lang,
-          tip_pct: summaryTipPct,
-          payload: buildSharePayload(),
-        }),
-      });
-      if (!res.ok) throw new Error('bad response');
-      const data = await res.json();
-      currentShareId = data.share_id;
-      isCollaborative = true;
-      // Así, si recargan la página, siguen en el mismo link compartido.
-      window.history.pushState({}, '', data.url);
-    } catch (e) {
-      showToast(t('shareError'));
-      return;
-    }
+// Crea la cuenta en el servidor si todavía no existe (primera vez que se
+// comparte), o devuelve el share_id que ya había. Lo usan tanto el botón
+// de link como el de QR como finalizar — un solo lugar que crea el link.
+async function ensureShareId() {
+  if (currentShareId) return currentShareId;
+  try {
+    const res = await fetch('/api/bills', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: '',
+        currency: currencyCode,
+        lang: lang,
+        tip_pct: summaryTipPct,
+        payload: buildSharePayload(),
+      }),
+    });
+    if (!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    currentShareId = data.share_id;
+    isCollaborative = true;
+    // Así, si recargan la página, siguen en el mismo link compartido.
+    window.history.pushState({}, '', data.url);
+    return currentShareId;
+  } catch (e) {
+    showToast(t('shareError'));
+    return null;
   }
+}
 
-  const fullUrl = window.location.origin + '/s/' + currentShareId;
+async function shareOrCopyLink() {
+  const id = await ensureShareId();
+  if (!id) return;
+  const fullUrl = window.location.origin + '/s/' + id;
   if (navigator.clipboard) {
     await navigator.clipboard.writeText(fullUrl).catch(() => {});
   }
   showToast(t('shareMsg'));
+}
+
+async function showQrCode() {
+  const id = await ensureShareId();
+  if (!id) return;
+  const fullUrl = window.location.origin + '/s/' + id;
+  document.getElementById('qrImage').src = '/api/qr?data=' + encodeURIComponent(fullUrl);
+  document.getElementById('qrLinkText').textContent = fullUrl;
+  document.getElementById('qrModal').classList.add('open');
+}
+
+function closeQrModal() {
+  document.getElementById('qrModal').classList.remove('open');
 }
 
 // ═══════════════ AUTOGUARDADO (edición colaborativa) ═══════════════
@@ -2468,17 +2510,14 @@ async function saveBillNow() {
 // Cierra la edición: guarda lo último, marca la cuenta como terminada, y
 // lleva al resumen de solo lectura de ese mismo link.
 async function finalizeBill() {
-  if (!currentShareId) {
-    await shareOrCopyLink();
-    if (!currentShareId) return; // shareOrCopyLink ya mostró el error
-  } else {
-    clearTimeout(autosaveTimer);
-    await saveBillNow();
-  }
+  const id = await ensureShareId();
+  if (!id) return;
+  clearTimeout(autosaveTimer);
+  await saveBillNow();
   try {
-    const res = await fetch(`/api/bills/${currentShareId}/finalize`, { method: 'POST' });
+    const res = await fetch(`/api/bills/${id}/finalize`, { method: 'POST' });
     if (!res.ok) throw new Error('finalize failed');
-    window.location.href = `/s/${currentShareId}`;
+    window.location.href = `/s/${id}`;
   } catch (e) {
     showToast(t('shareError'));
   }
@@ -2531,6 +2570,11 @@ function renderHistoryList(bills) {
 // Cierra el historial al hacer click fuera de la tarjeta
 document.getElementById('historyModal').addEventListener('click', e => {
   if (e.target.id === 'historyModal') closeHistory();
+});
+
+// Cierra el QR al hacer click fuera de la tarjeta
+document.getElementById('qrModal').addEventListener('click', e => {
+  if (e.target.id === 'qrModal') closeQrModal();
 });
 
 // ═══════════════ SCAN RECEIPT (OCR) — Fase 3 ═══════════════

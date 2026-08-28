@@ -1,0 +1,32 @@
+# Entorno virtual
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+*.log
+
+# Base de datos (Fase 2) — se genera sola al arrancar la app.
+# En producción se usa PostgreSQL (Fase 4), esto es solo para SQLite local.
+checkplease.db
+*.db
+
+# Variables de entorno / secretos locales (Fase 4)
+.env
+.env.*
+
+# Paquetes de idioma de Tesseract (Fase 3) — se descargan aparte,
+# ver README para instrucciones de instalación
+tessdata/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

@@ -1,0 +1,2631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Check Please! — Split the bill, not the friendship</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --night: #151B2E;
+  --night-2: #1E2740;
+  --night-3: #2A3454;
+  --surface: #1E2740;
+  --line: #303B5C;
+  --ink: #F4F6FB;
+  --ink-dim: #8B95B5;
+  --ink-faint: #5A6489;
+  --amber: #FFB84D;
+  --amber-glow: #FFB84D33;
+  --coral: #FF5C4D;
+  --mint: #4ADE80;
+  --mint-glow: #4ADE8033;
+
+  --p1: #FF5C4D;
+  --p2: #4DA6FF;
+  --p3: #FFB84D;
+  --p4: #B57BFF;
+  --p5: #4ADE80;
+  --p6: #FF7BC5;
+  --p7: #4DE0D8;
+  --p8: #FFD24D;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+html, body {
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, #1E2740 0%, transparent 60%),
+    radial-gradient(circle at 90% 10%, #FFB84D0a 0%, transparent 40%);
+}
+
+/* ── APP SHELL ── */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+}
+
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.logo-hand {
+  width: 30px; height: 30px;
+  flex-shrink: 0;
+}
+
+.logo-word {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.logo-word b { color: var(--coral); }
+
+/* Converter icon button */
+.conv-icon-btn {
+  width: 36px; height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.conv-icon-btn svg { width: 18px; height: 18px; }
+.conv-icon-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+/* Language selector */
+.lang-select {
+  position: relative;
+}
+
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 6px 12px;
+  color: var(--ink-dim);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.lang-btn:hover { border-color: var(--amber); color: var(--ink); }
+.lang-btn .globe { font-size: 14px; }
+.lang-btn .chev { font-size: 9px; opacity: 0.6; }
+
+.lang-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--night-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 6px;
+  min-width: 150px;
+  box-shadow: 0 12px 32px #00000066;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: all 0.2s;
+  z-index: 50;
+}
+
+.lang-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--ink-dim);
+  transition: background 0.15s, color 0.15s;
+}
+
+.lang-option:hover { background: var(--night-3); color: var(--ink); }
+.lang-option.active { color: var(--amber); }
+.lang-option .flag { font-size: 16px; }
+.lang-option .check { margin-left: auto; opacity: 0; }
+.lang-option.active .check { opacity: 1; }
+
+/* ── TAGLINE ── */
+.tagline {
+  text-align: center;
+  padding: 4px 20px 18px;
+  font-size: 13px;
+  color: var(--ink-faint);
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+/* ── COUNTER HERO ── */
+.counter-hero {
+  margin: 0 20px 20px;
+  background: linear-gradient(180deg, var(--night-2), var(--surface));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 26px 24px 22px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.5s;
+}
+
+.counter-hero.settled {
+  border-color: var(--mint);
+  box-shadow: 0 0 0 1px var(--mint), 0 0 40px var(--mint-glow);
+}
+
+.counter-hero::before {
+  content: '';
+  position: absolute;
+  top: -40%; left: 50%;
+  width: 200%; height: 80%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, var(--amber-glow) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+}
+
+.counter-hero.settled::before {
+  background: radial-gradient(ellipse at center, var(--mint-glow) 0%, transparent 60%);
+  opacity: 1;
+}
+
+.counter-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+  transition: color 0.5s;
+}
+
+.counter-hero.settled .counter-label { color: var(--mint); }
+
+.counter-value {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -2px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  transition: color 0.5s;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+}
+
+.counter-hero.settled .counter-value { color: var(--mint); }
+
+.counter-currency {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  transition: color 0.5s;
+}
+
+.counter-hero.settled .counter-currency { color: var(--mint); }
+
+.counter-settled-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mint);
+}
+
+.counter-hero.settled .counter-settled-badge { display: flex; }
+
+/* Progress bar */
+.progress-track {
+  margin-top: 16px;
+  height: 6px;
+  background: var(--night);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--coral), var(--amber));
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1), background 0.5s;
+}
+
+.counter-hero.settled .progress-fill {
+  background: var(--mint);
+  width: 100% !important;
+}
+
+.counter-sub {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+/* ── SECTION ── */
+.section {
+  margin: 0 20px 20px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title .num {
+  width: 20px; height: 20px;
+  border-radius: 6px;
+  background: var(--night-3);
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── PROFILES ── */
+.profiles-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.profile-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 40px;
+  padding: 7px 12px 7px 7px;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.profile-chip:focus-within { border-color: var(--amber); }
+
+.profile-dot {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.profile-chip input {
+  background: none;
+  border: none;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  outline: none;
+  width: 74px;
+}
+
+.profile-chip input::placeholder { color: var(--ink-faint); }
+
+.profile-remove {
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color 0.2s;
+}
+
+.profile-remove:hover { color: var(--coral); }
+
+.profile-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1.5px dashed var(--line);
+  border-radius: 40px;
+  padding: 7px 16px;
+  color: var(--ink-dim);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+
+.profile-add:hover { border-color: var(--amber); color: var(--amber); }
+
+/* ── BILL ITEMS ── */
+.scan-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--amber);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  padding: 0;
+}
+
+.scan-btn:hover { text-decoration: underline; }
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: grab;
+  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+  position: relative;
+  user-select: none;
+}
+
+.item-card:active { cursor: grabbing; }
+
+.item-card.assigned {
+  opacity: 0.5;
+  border-color: var(--mint);
+}
+
+.item-card.assigned::after {
+  content: '✓';
+  position: absolute;
+  right: 14px;
+  color: var(--mint);
+  font-weight: 700;
+}
+
+.item-qty {
+  min-width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--night-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.item-info { flex: 1; min-width: 0; }
+
+.item-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-assignees {
+  display: flex;
+  gap: -4px;
+  margin-top: 3px;
+  height: 16px;
+}
+
+.mini-dot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--surface);
+  margin-left: -4px;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+}
+.mini-dot:first-child { margin-left: 0; }
+
+.item-price {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.item-drag-hint {
+  color: var(--ink-faint);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.item-remove {
+  background: none; border: none;
+  color: var(--ink-faint);
+  cursor: pointer; font-size: 16px;
+  padding: 0 2px; line-height: 1;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+.item-remove:hover { color: var(--coral); }
+
+/* Add item inline */
+.add-item-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  padding: 13px;
+  color: var(--ink-dim);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+
+.add-item-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+/* ── ADD ITEM FORM ── */
+.add-form {
+  display: none;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.add-form.open { display: flex; flex-direction: column; }
+
+.add-form-row { display: flex; gap: 8px; }
+
+.add-form input {
+  background: var(--night);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.add-form input:focus { border-color: var(--amber); }
+.add-form input::placeholder { color: var(--ink-faint); }
+
+.add-form .in-qty { width: 60px; text-align: center; }
+.add-form .in-name { flex: 1; }
+.add-form .in-price { width: 90px; }
+
+.add-form-actions { display: flex; gap: 8px; }
+
+.btn-sm {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  border: none;
+  transition: opacity 0.2s;
+}
+
+.btn-sm.primary { background: var(--amber); color: var(--night); }
+.btn-sm.ghost { background: none; border: 1px solid var(--line); color: var(--ink-dim); }
+.btn-sm:hover { opacity: 0.85; }
+
+/* ── SCAN RECEIPT (OCR) — Fase 3 ── */
+.scan-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--line);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: scanSpin 0.8s linear infinite;
+}
+@keyframes scanSpin { to { transform: rotate(360deg); } }
+
+.scan-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scan-item-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 8px 10px;
+}
+
+.scan-item-row.low-conf { border-color: var(--amber); }
+
+.scan-item-warn { font-size: 14px; flex-shrink: 0; }
+
+.scan-item-row input {
+  background: var(--night);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  padding: 8px 8px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+.scan-item-row input:focus { border-color: var(--amber); }
+.scan-item-row input::placeholder { color: var(--ink-faint); }
+
+.scan-qty-input { width: 40px; text-align: center; flex-shrink: 0; }
+.scan-name-input { flex: 1; }
+.scan-price-input { width: 74px; flex-shrink: 0; }
+
+.scan-item-remove {
+  background: none; border: none;
+  color: var(--ink-faint);
+  cursor: pointer; font-size: 18px;
+  padding: 0 2px; line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+.scan-item-remove:hover { color: var(--coral); }
+
+.scan-empty-msg {
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 8px 8px 20px;
+}
+
+/* ── CTA BAR ── */
+.cta-bar {
+  padding: 12px 20px 24px;
+}
+
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, var(--coral), var(--amber));
+  color: #fff;
+  border: none;
+  padding: 16px;
+  border-radius: 16px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: 0 8px 24px #FF5C4D33;
+}
+
+.btn-primary:hover { opacity: 0.94; transform: translateY(-1px); }
+.btn-primary:disabled {
+  background: var(--night-3);
+  color: var(--ink-faint);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── DExPLIT MODAL ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0B0F1Ccc;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+}
+
+.modal-overlay.open { opacity: 1; visibility: visible; }
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  height: 90vh;
+  height: 90dvh;
+  background: var(--night-2);
+  border-radius: 28px 28px 0 0;
+  border-top: 1px solid var(--line);
+  padding: 0;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-grip {
+  width: 40px; height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin: 12px auto 8px;
+  flex-shrink: 0;
+}
+
+.modal-header {
+  padding: 8px 24px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.modal-item-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.modal-item-price {
+  font-size: 14px;
+  color: var(--ink-dim);
+}
+
+.modal-item-price b {
+  color: var(--amber);
+  font-family: var(--font-display);
+}
+
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-instruction {
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-faint);
+  margin-bottom: 20px;
+}
+
+/* Split preview */
+.split-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  min-height: 40px;
+}
+
+.split-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  padding: 5px 12px 5px 5px;
+  font-size: 13px;
+  color: var(--ink);
+  animation: popIn 0.2s ease;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.split-tag .st-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff;
+  text-transform: uppercase;
+}
+
+.split-tag .st-amount {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.split-tag .st-remove {
+  background: none; border: none; color: var(--ink-faint);
+  cursor: pointer; font-size: 14px; padding: 0 2px;
+}
+.split-tag .st-remove:hover { color: var(--coral); }
+
+.split-empty {
+  font-size: 13px;
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+/* Profile drop targets */
+.drop-targets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 10px;
+}
+
+.drop-target {
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 2px dashed var(--line);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.drop-target:hover, .drop-target.drag-over {
+  border-color: var(--amber);
+  border-style: solid;
+  background: var(--night-3);
+  transform: scale(1.03);
+}
+
+.drop-target.drag-over {
+  border-color: var(--mint);
+  box-shadow: 0 0 20px var(--mint-glow);
+}
+
+.dt-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 700; color: #fff;
+  text-transform: uppercase;
+  transition: transform 0.2s;
+}
+
+.drop-target.drag-over .dt-avatar { transform: scale(1.1); }
+
+.dt-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dt-count {
+  position: absolute;
+  top: 8px; right: 8px;
+  min-width: 20px; height: 20px;
+  border-radius: 10px;
+  background: var(--amber);
+  color: var(--night);
+  font-size: 11px;
+  font-weight: 700;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dt-count.show { display: flex; }
+
+/* Tap-to-add mode (mobile friendly) */
+.modal-add-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  border-top: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.btn-done {
+  width: 100%;
+  background: var(--mint);
+  color: var(--night);
+  border: none;
+  padding: 16px;
+  border-radius: 16px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-done:hover { opacity: 0.9; }
+.btn-done:disabled { background: var(--night-3); color: var(--ink-faint); cursor: not-allowed; }
+
+/* Floating drag clone */
+.drag-clone {
+  position: fixed;
+  z-index: 200;
+  pointer-events: none;
+  background: var(--night-3);
+  border: 1px solid var(--amber);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  box-shadow: 0 12px 32px #00000088;
+  opacity: 0.95;
+}
+
+/* ── SUMMARY MODAL ── */
+.summary-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0B0F1Ccc;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+}
+
+.summary-overlay.open { opacity: 1; visibility: visible; }
+
+.summary-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--night-2);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  overflow: hidden;
+  transform: scale(0.9);
+  transition: transform 0.3s;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-overlay.open .summary-card { transform: scale(1); }
+
+.summary-header {
+  padding: 24px 24px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.summary-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.summary-subtitle {
+  font-size: 13px;
+  color: var(--ink-dim);
+  margin-top: 4px;
+}
+
+.summary-list {
+  padding: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.summary-person-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  transition: background 0.15s;
+}
+
+.summary-person-row:hover { background: var(--surface); }
+
+.sp-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #fff;
+  text-transform: uppercase; flex-shrink: 0;
+}
+
+.sp-info { flex: 1; min-width: 0; }
+.sp-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+.sp-items { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+.sp-amount {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+.sp-amount-wrap { text-align: right; flex-shrink: 0; }
+.sp-tip-note {
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-footer { padding: 16px 20px 20px; border-top: 1px solid var(--line); }
+
+/* Summary tip selector */
+.summary-tip {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+}
+.summary-tip-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+.summary-tip-btns {
+  display: flex;
+  gap: 6px;
+}
+.stip-btn {
+  flex: 1;
+  padding: 9px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--night);
+  color: var(--ink-dim);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.15s;
+}
+.stip-btn:hover { border-color: var(--amber); color: var(--amber); }
+.stip-btn.active {
+  background: var(--amber-glow);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.stip-custom { flex: 0 0 44px; }
+
+.summary-actions { display: flex; gap: 10px; margin-bottom: 10px; }
+
+.btn-share2 {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: border-color 0.2s;
+}
+
+.btn-share2:hover { border-color: var(--amber); }
+
+.btn-close-summary {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px;
+  font-family: var(--font-body);
+}
+
+/* History modal rows */
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s;
+}
+.history-row:hover { background: var(--surface); }
+.history-icon {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--night-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.history-info { flex: 1; min-width: 0; }
+.history-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.history-date { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+.history-amount {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--amber);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.history-empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--night-3);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 300;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+  box-shadow: 0 8px 24px #00000066;
+}
+
+.toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+/* Utility */
+.hidden { display: none !important; }
+
+/* ── AD BANNER (fixed bottom) ── */
+.ad-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 80;
+  display: flex;
+  justify-content: center;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, var(--night) 30%);
+  pointer-events: none;
+}
+
+.ad-slot {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 360px;
+  height: 56px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+}
+
+.ad-slot-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.ad-slot-mock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-dim);
+  font-size: 12px;
+}
+
+.ad-remove {
+  position: absolute;
+  top: -8px; right: -8px;
+  background: var(--night-3);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--amber);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ad-remove:hover { background: var(--amber); color: var(--night); }
+
+/* App gets bottom padding so the fixed ad doesn't cover the CTA */
+.app { padding-bottom: 76px; }
+
+/* ── CONVERTER MODAL ── */
+.conv-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0B0F1Ccc;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+}
+.conv-overlay.open { opacity: 1; visibility: visible; }
+
+.conv-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--night-2);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  overflow: hidden;
+  transform: scale(0.92);
+  transition: transform 0.3s;
+}
+.conv-overlay.open .conv-card { transform: scale(1); }
+
+.conv-header {
+  padding: 20px 22px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.conv-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.conv-close {
+  background: none; border: none;
+  color: var(--ink-faint);
+  font-size: 22px; cursor: pointer;
+  line-height: 1; padding: 0;
+}
+.conv-close:hover { color: var(--ink); }
+
+.conv-body { padding: 22px; }
+
+.conv-result {
+  background: var(--night);
+  border-radius: 16px;
+  padding: 22px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.conv-result-val {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.conv-result-sub {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 6px;
+}
+
+.conv-field { margin-bottom: 14px; }
+.conv-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.conv-field input, .conv-field select {
+  width: 100%;
+  background: var(--night);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.conv-field input:focus, .conv-field select:focus { border-color: var(--amber); }
+
+.conv-row {
+  display: grid;
+  grid-template-columns: 1fr 38px 1fr;
+  gap: 8px;
+  align-items: end;
+}
+.conv-swap {
+  width: 38px; height: 44px;
+  border-radius: 12px;
+  background: var(--night-3);
+  border: none;
+  color: var(--amber);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.3s;
+}
+.conv-swap:hover { background: var(--line); transform: rotate(180deg); }
+
+.conv-crosssell {
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 18px;
+}
+.conv-crosssell b { color: var(--amber); }
+
+.conv-rates-note {
+  text-align: center;
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 10px;
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Focus visible */
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo-mark">
+      <svg class="logo-hand" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- action lines -->
+        <path d="M8 12 L13 17 M4 22 L10 24 M6 33 L12 33" stroke="#FFB84D" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- hand -->
+        <g>
+          <rect x="26" y="8" width="7" height="26" rx="3.5" fill="#F0A868"/>
+          <rect x="34" y="10" width="7" height="24" rx="3.5" fill="#F0A868"/>
+          <rect x="18" y="12" width="7" height="22" rx="3.5" fill="#F0A868"/>
+          <rect x="42" y="16" width="6.5" height="18" rx="3.25" fill="#F0A868"/>
+          <rect x="12" y="24" width="8" height="14" rx="4" fill="#F0A868" transform="rotate(-25 16 31)"/>
+          <rect x="16" y="30" width="30" height="20" rx="8" fill="#F0A868"/>
+          <rect x="18" y="46" width="26" height="8" rx="3" fill="#3B5245"/>
+        </g>
+      </svg>
+      <span class="logo-word">check <b>please!</b></span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="conv-icon-btn" onclick="openHistory()" aria-label="History" title="History" id="historyBtn">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="7.5"/>
+          <path d="M10 6v4l3 2"/>
+        </svg>
+      </button>
+      <button class="conv-icon-btn" onclick="openConverter()" aria-label="Currency converter" title="Currency converter">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7h11l-2.5-2.5M17 13H6l2.5 2.5"/>
+        </svg>
+      </button>
+      <div class="lang-select">
+        <button class="lang-btn" onclick="toggleLangMenu()" aria-label="Change language">
+          <span class="globe">🌐</span>
+          <span id="langCurrent">ES</span>
+          <span class="chev">▼</span>
+        </button>
+        <div class="lang-menu" id="langMenu">
+          <div class="lang-option active" onclick="setLang('es')" data-lang="es">
+            <span class="flag">🇪🇸</span> Español <span class="check">✓</span>
+          </div>
+          <div class="lang-option" onclick="setLang('en')" data-lang="en">
+            <span class="flag">🇺🇸</span> English <span class="check">✓</span>
+          </div>
+          <div class="lang-option" onclick="setLang('pt')" data-lang="pt">
+            <span class="flag">🇧🇷</span> Português <span class="check">✓</span>
+          </div>
+          <div class="lang-option" onclick="setLang('fr')" data-lang="fr">
+            <span class="flag">🇫🇷</span> Français <span class="check">✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAGLINE -->
+  <div class="tagline" id="tagline">Dividimos la cuenta, no la amistad</div>
+
+  <!-- COUNTER HERO -->
+  <div class="counter-hero" id="counterHero">
+    <div class="counter-label" id="counterLabel">Pendiente por repartir</div>
+    <div class="counter-value">
+      <span class="counter-currency" id="counterCurrency">$</span><span id="counterValue">0.00</span>
+    </div>
+    <div class="counter-settled-badge" id="settledBadge">
+      <span>✓</span> <span id="settledText">¡Cuenta repartida!</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="counter-sub" id="counterSub">Total: $0.00</div>
+  </div>
+
+  <!-- SECTION 2: PROFILES -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title"><span class="num">1</span><span id="titleProfiles">¿Quiénes pagan?</span></div>
+    </div>
+    <div class="profiles-row" id="profilesRow"></div>
+  </div>
+
+  <!-- SECTION 3: BILL -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title"><span class="num">2</span><span id="titleBill">La cuenta</span></div>
+      <button class="scan-btn" onclick="triggerScanReceipt()">
+        <span>📷</span> <span id="scanLabel">Escanear</span>
+      </button>
+      <input type="file" accept="image/*" capture="environment" id="receiptFileInput"
+        class="hidden" onchange="handleReceiptFileSelected(event)"/>
+    </div>
+    <div class="items-list" id="itemsList"></div>
+    <button class="add-item-btn" id="addItemBtn" onclick="toggleAddForm()">
+      <span>+</span> <span id="addItemLabel">Agregar ítem</span>
+    </button>
+    <div class="add-form" id="addForm">
+      <div class="add-form-row">
+        <input class="in-qty" type="number" id="newQty" placeholder="1" min="1" value="1"/>
+        <input class="in-name" type="text" id="newName" placeholder="Nombre del ítem"/>
+        <input class="in-price" type="number" id="newPrice" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+      <div class="add-form-actions">
+        <button class="btn-sm ghost" onclick="cancelAddForm()" id="cancelAddLabel">Cancelar</button>
+        <button class="btn-sm primary" onclick="confirmAddItem()" id="confirmAddLabel">Agregar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-bar">
+    <button class="btn-primary" id="reviewBtn" onclick="openSummary()">
+      <span id="reviewLabel">Ver resumen</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- SPLIT MODAL -->
+<div class="modal-overlay" id="splitModal">
+  <div class="modal">
+    <div class="modal-grip"></div>
+    <div class="modal-header">
+      <div class="modal-item-name" id="modalItemName">Ítem</div>
+      <div class="modal-item-price" id="modalItemPrice"></div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-instruction" id="modalInstruction">Toca un perfil para asignar. Tócalo de nuevo para sumar otra porción.</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;">
+        <button class="btn-sm ghost" style="flex:0 1 auto;padding:8px 16px;" onclick="assignToAll()" id="allBtn">👥 <span id="allLabel">Entre todos</span></button>
+        <button class="btn-sm ghost" style="flex:0 1 auto;padding:8px 16px;" onclick="clearAssignment()" id="clearBtn">↺ <span id="clearLabel">Limpiar</span></button>
+      </div>
+      <div class="split-preview" id="splitPreview"></div>
+      <div class="drop-targets" id="dropTargets"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-done" id="btnDone" onclick="closeSplitModal()">
+        <span>✓</span> <span id="doneLabel">Listo</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SCAN REVIEW MODAL (Fase 3) -->
+<div class="modal-overlay" id="scanModal">
+  <div class="modal">
+    <div class="modal-grip"></div>
+    <div class="modal-header">
+      <div class="modal-item-name" id="scanModalTitle">Revisar ítems</div>
+    </div>
+    <div class="modal-body" id="scanModalBody"></div>
+    <div class="modal-footer" style="display:flex;gap:10px;">
+      <button class="btn-sm ghost" style="flex:1;" onclick="closeScanModal()" id="scanCancelLabel">Cancelar</button>
+      <button class="btn-done" style="flex:2;" id="scanConfirmBtn" onclick="confirmScanImport()">
+        <span>✓</span> <span id="scanConfirmLabel">Confirmar e importar</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY MODAL -->
+<div class="summary-overlay" id="summaryModal">
+  <div class="summary-card">
+    <div class="summary-header">
+      <div class="summary-title" id="summaryTitle">Quién paga qué</div>
+      <div class="summary-subtitle" id="summarySubtitle"></div>
+    </div>
+    <div class="summary-list" id="summaryPeopleList"></div>
+    <div class="summary-tip" id="summaryTip">
+      <div class="summary-tip-label" id="tipLabel">Propina</div>
+      <div class="summary-tip-btns">
+        <button class="stip-btn active" data-tip="0" onclick="setSummaryTip(0)">0%</button>
+        <button class="stip-btn" data-tip="10" onclick="setSummaryTip(10)">10%</button>
+        <button class="stip-btn" data-tip="15" onclick="setSummaryTip(15)">15%</button>
+        <button class="stip-btn" data-tip="20" onclick="setSummaryTip(20)">20%</button>
+        <button class="stip-btn stip-custom" onclick="focusSummaryCustomTip()">·%</button>
+      </div>
+      <input type="number" id="summaryCustomTip" placeholder="%" min="0" max="100"
+        style="display:none;width:100%;margin-top:8px;background:var(--night);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;font-family:var(--font-body);color:var(--ink);outline:none;"
+        oninput="onSummaryCustomTip(this.value)"/>
+    </div>
+    <div class="summary-footer">
+      <div class="summary-actions">
+        <button class="btn-share2" onclick="shareResults()"><span>🔗</span> <span id="shareLabel">Link</span></button>
+        <button class="btn-share2" onclick="shareResults()"><span>📱</span> QR</button>
+      </div>
+      <button class="btn-close-summary" onclick="closeSummary()" id="closeSummaryLabel">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="summary-overlay" id="historyModal">
+  <div class="summary-card">
+    <div class="summary-header">
+      <div class="summary-title" id="historyTitle">Historial</div>
+    </div>
+    <div class="summary-list" id="historyList"></div>
+    <div class="summary-footer">
+      <button class="btn-close-summary" onclick="closeHistory()" id="closeHistoryLabel">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIXED AD BANNER -->
+<div class="ad-bar" id="adBar">
+  <div class="ad-slot">
+    <div class="ad-slot-mock">
+      <span>📢</span>
+      <span class="ad-slot-label" id="adLabel">Publicidad · 320×50</span>
+    </div>
+    <div class="ad-remove" onclick="showToast(t('goProMsg'))" id="adRemove">✨ Quitar con Pro</div>
+  </div>
+</div>
+
+<!-- CONVERTER MODAL -->
+<div class="conv-overlay" id="convModal">
+  <div class="conv-card">
+    <div class="conv-header">
+      <div class="conv-title" id="convTitle">Conversor de divisas</div>
+      <button class="conv-close" onclick="closeConverter()" aria-label="Close">×</button>
+    </div>
+    <div class="conv-body">
+      <div class="conv-result">
+        <div class="conv-result-val" id="convResultVal">—</div>
+        <div class="conv-result-sub" id="convResultSub"></div>
+      </div>
+      <div class="conv-field">
+        <label id="convAmountLabel">Monto</label>
+        <input type="number" id="convAmount" placeholder="100" min="0" step="0.01" oninput="doConvert()"/>
+      </div>
+      <div class="conv-row">
+        <div class="conv-field" style="margin-bottom:0">
+          <label id="convFromLabel">De</label>
+          <select id="convFrom" onchange="doConvert()"></select>
+        </div>
+        <button class="conv-swap" onclick="swapConv()" aria-label="Swap">⇅</button>
+        <div class="conv-field" style="margin-bottom:0">
+          <label id="convToLabel">A</label>
+          <select id="convTo" onchange="doConvert()"></select>
+        </div>
+      </div>
+      <div class="conv-crosssell" id="convCrossSell">¿Dividiendo una cuenta? <b id="convCrossLink" onclick="closeConverter()" style="cursor:pointer;">Prueba el divisor →</b></div>
+      <div class="conv-rates-note" id="convRatesNote">Tasas de ejemplo · en producción se actualizan en vivo</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════ i18n ═══════════════
+const I18N = {
+  es: {
+    tagline: 'Dividimos la cuenta, no la amistad',
+    counterLabel: 'Pendiente por repartir',
+    counterSettled: '¡Cuenta repartida!',
+    total: 'Total',
+    profiles: '¿Quiénes pagan?',
+    bill: 'La cuenta',
+    scan: 'Escanear',
+    addItem: 'Agregar ítem',
+    cancel: 'Cancelar',
+    add: 'Agregar',
+    review: 'Ver resumen',
+    itemName: 'Nombre del ítem',
+    modalInstruction: 'Toca un perfil para asignar. Tócalo de nuevo para sumar otra porción.',
+    done: 'Listo',
+    splitEmpty: 'Aún sin asignar',
+    summaryTitle: 'Quién paga qué',
+    each: 'c/u',
+    close: 'Cerrar',
+    link: 'Link',
+    addPerson: 'agregar',
+    shareMsg: '¡Link copiado! El QR llega pronto.',
+    person: 'Persona',
+    nothingAssigned: 'Sin ítems',
+    settledSub: 'El total llegó a cero 🎉',
+    convTitle: 'Conversor de divisas', convAmount: 'Monto', convFrom: 'De', convTo: 'A', convEnterAmount: 'Ingresa un monto', convCross: '¿Dividiendo una cuenta?', convCrossLink: 'Prueba el divisor →', convRatesNote: 'Tasas de ejemplo · en producción se actualizan en vivo', adLabel: 'Publicidad · 320×50', adRemove: '✨ Quitar con Pro', goProMsg: 'Versión Pro sin anuncios — ¡llega pronto!',
+    tipLabel: 'Propina', tipIncluded: 'incluye propina',
+    pendingSub: 'Toca un ítem para repartirlo', splitAll: 'Entre todos', clear: 'Limpiar',
+    historyTitle: 'Historial', historyEmpty: 'Aún no has compartido ninguna cuenta',
+    untitledBill: 'Cuenta sin nombre', loading: 'Cargando…', shareError: 'No se pudo generar el link',
+    scanReviewTitle: 'Revisar ítems', scanLoading: 'Leyendo tu boleta…',
+    scanEmpty: 'No pudimos leer ítems claros en esta foto — agrégalos a mano abajo 👇',
+    scanError: 'No se pudo leer la boleta', scanConfirmLabel: 'Confirmar e importar',
+    scanImported: 'Ítems agregados a la cuenta'
+  },
+  en: {
+    tagline: 'Split the bill, not the friendship',
+    counterLabel: 'Left to assign',
+    counterSettled: 'Bill settled!',
+    total: 'Total',
+    profiles: "Who's paying?",
+    bill: 'The bill',
+    scan: 'Scan',
+    addItem: 'Add item',
+    cancel: 'Cancel',
+    add: 'Add',
+    review: 'See summary',
+    itemName: 'Item name',
+    modalInstruction: 'Tap a profile to assign. Tap again to add another share.',
+    done: 'Done',
+    splitEmpty: 'Not assigned yet',
+    summaryTitle: 'Who owes what',
+    each: 'each',
+    close: 'Close',
+    link: 'Link',
+    addPerson: 'add',
+    shareMsg: 'Link copied! QR coming soon.',
+    person: 'Person',
+    nothingAssigned: 'No items',
+    settledSub: 'The total hit zero 🎉',
+    convTitle: 'Currency converter', convAmount: 'Amount', convFrom: 'From', convTo: 'To', convEnterAmount: 'Enter an amount', convCross: 'Splitting a bill?', convCrossLink: 'Try the splitter →', convRatesNote: 'Sample rates · live updates in production', adLabel: 'Ad · 320×50', adRemove: '✨ Remove with Pro', goProMsg: 'Ad-free Pro version — coming soon!',
+    tipLabel: 'Tip', tipIncluded: 'tip included',
+    pendingSub: 'Tap an item to split it', splitAll: 'Everyone', clear: 'Clear',
+    historyTitle: 'History', historyEmpty: 'No shared bills yet',
+    untitledBill: 'Untitled bill', loading: 'Loading…', shareError: 'Could not generate the link',
+    scanReviewTitle: 'Review items', scanLoading: 'Reading your receipt…',
+    scanEmpty: "We couldn't read clear items in this photo — add them by hand below 👇",
+    scanError: 'Could not read the receipt', scanConfirmLabel: 'Confirm & import',
+    scanImported: 'Items added to the bill'
+  },
+  pt: {
+    tagline: 'Dividimos a conta, não a amizade',
+    counterLabel: 'Falta atribuir',
+    counterSettled: 'Conta dividida!',
+    total: 'Total',
+    profiles: 'Quem paga?',
+    bill: 'A conta',
+    scan: 'Escanear',
+    addItem: 'Adicionar item',
+    cancel: 'Cancelar',
+    add: 'Adicionar',
+    review: 'Ver resumo',
+    itemName: 'Nome do item',
+    modalInstruction: 'Toque num perfil para atribuir. Toque de novo para somar outra parte.',
+    done: 'Pronto',
+    splitEmpty: 'Ainda não atribuído',
+    summaryTitle: 'Quem paga o quê',
+    each: 'cada',
+    close: 'Fechar',
+    link: 'Link',
+    addPerson: 'adicionar',
+    shareMsg: 'Link copiado! QR em breve.',
+    person: 'Pessoa',
+    nothingAssigned: 'Sem itens',
+    settledSub: 'O total chegou a zero 🎉',
+    convTitle: 'Conversor de moedas', convAmount: 'Valor', convFrom: 'De', convTo: 'Para', convEnterAmount: 'Insira um valor', convCross: 'Dividindo uma conta?', convCrossLink: 'Experimente o divisor →', convRatesNote: 'Taxas de exemplo · atualização ao vivo em produção', adLabel: 'Publicidade · 320×50', adRemove: '✨ Remover com Pro', goProMsg: 'Versão Pro sem anúncios — em breve!',
+    tipLabel: 'Gorjeta', tipIncluded: 'gorjeta incluída',
+    pendingSub: 'Toque num item para dividir', splitAll: 'Entre todos', clear: 'Limpar',
+    historyTitle: 'Histórico', historyEmpty: 'Você ainda não compartilhou nenhuma conta',
+    untitledBill: 'Conta sem nome', loading: 'Carregando…', shareError: 'Não foi possível gerar o link',
+    scanReviewTitle: 'Revisar itens', scanLoading: 'Lendo sua conta…',
+    scanEmpty: 'Não conseguimos ler itens claros nesta foto — adicione-os manualmente abaixo 👇',
+    scanError: 'Não foi possível ler a conta', scanConfirmLabel: 'Confirmar e importar',
+    scanImported: 'Itens adicionados à conta'
+  },
+  fr: {
+    tagline: "Partagez l'addition, pas l'amitié",
+    counterLabel: 'Reste à répartir',
+    counterSettled: 'Addition réglée !',
+    total: 'Total',
+    profiles: 'Qui paie ?',
+    bill: "L'addition",
+    scan: 'Scanner',
+    addItem: 'Ajouter un article',
+    cancel: 'Annuler',
+    add: 'Ajouter',
+    review: 'Voir le résumé',
+    itemName: "Nom de l'article",
+    modalInstruction: 'Touchez un profil pour attribuer. Touchez encore pour ajouter une part.',
+    done: 'Terminé',
+    splitEmpty: 'Pas encore attribué',
+    summaryTitle: 'Qui paie quoi',
+    each: 'chacun',
+    close: 'Fermer',
+    link: 'Lien',
+    addPerson: 'ajouter',
+    shareMsg: 'Lien copié ! QR bientôt.',
+    person: 'Personne',
+    nothingAssigned: 'Aucun article',
+    settledSub: 'Le total est à zéro 🎉',
+    convTitle: 'Convertisseur de devises', convAmount: 'Montant', convFrom: 'De', convTo: 'Vers', convEnterAmount: 'Entrez un montant', convCross: 'Vous partagez une addition ?', convCrossLink: 'Essayez le répartiteur →', convRatesNote: 'Taux exemples · mise à jour en direct en production', adLabel: 'Pub · 320×50', adRemove: '✨ Retirer avec Pro', goProMsg: 'Version Pro sans pub — bientôt !',
+    tipLabel: 'Pourboire', tipIncluded: 'pourboire inclus',
+    pendingSub: 'Touchez un article pour le partager', splitAll: 'Entre tous', clear: 'Effacer',
+    historyTitle: 'Historique', historyEmpty: "Vous n'avez encore partagé aucune addition",
+    untitledBill: 'Addition sans nom', loading: 'Chargement…', shareError: "Impossible de générer le lien",
+    scanReviewTitle: 'Vérifier les articles', scanLoading: 'Lecture de votre addition…',
+    scanEmpty: "Nous n'avons pas pu lire d'articles clairs sur cette photo — ajoutez-les manuellement ci-dessous 👇",
+    scanError: "Impossible de lire l'addition", scanConfirmLabel: 'Confirmer et importer',
+    scanImported: "Articles ajoutés à l'addition"
+  }
+};
+
+let lang = 'es';
+const CURRENCY = { es:'$', en:'$', pt:'R$', fr:'€' };
+// Código de moneda ISO (para guardar en la base de datos al compartir).
+// Se actualiza con la detección real por IP en detectLanguage().
+let currencyCode = 'USD';
+const CURRENCY_CODE_BY_LANG = { es:'USD', en:'USD', pt:'BRL', fr:'EUR' };
+
+// ═══════════════ STATE ═══════════════
+const PALETTE = ['#FF5C4D','#4DA6FF','#FFB84D','#B57BFF','#4ADE80','#FF7BC5','#4DE0D8','#FFD24D'];
+let people = [];
+let items = [];
+// assignments[itemId] = [personId, personId, ...] (can repeat conceptually but we store share counts)
+// We store: assignments[itemId] = { personId: shares }
+let assignments = {};
+let activeItemId = null;
+let nextPersonId = 1;
+let nextItemId = 1;
+
+function t(key) { return I18N[lang][key] || key; }
+function pc(personId) {
+  const p = people.find(x => x.id === personId);
+  return p ? p.color : '#888';
+}
+function curr() { return CURRENCY[lang]; }
+
+// ═══════════════ INIT ═══════════════
+function init() {
+  // Detecta el idioma por IP (llamada real al backend)
+  detectLanguage();
+  // Trae las tasas de cambio en vivo desde el backend
+  fetchRates();
+  buildConvSelects();
+  // seed data
+  addPerson('Alex');
+  addPerson('Bea');
+  addPerson('Cy');
+  addItemData(1, 'Pizza', 24);
+  addItemData(2, 'Vino', 14);
+  addItemData(3, 'Cerveza', 12);
+  addItemData(1, 'Postre', 8);
+  renderAll();
+}
+
+function detectLanguage() {
+  // Primero aplicamos un idioma inmediato (el del navegador) para que
+  // la página no aparezca vacía mientras esperamos al servidor.
+  const nav = (navigator.language || 'es').slice(0,2);
+  if (I18N[nav]) { lang = nav; }
+  applyLang();
+
+  // Luego preguntamos al backend por el idioma real según la IP.
+  fetch('/api/geo')
+    .then(r => r.json())
+    .then(data => {
+      if (data.lang && I18N[data.lang]) {
+        setLang(data.lang);
+      }
+      // Se aplica después de setLang() porque setLang usa un valor
+      // genérico por idioma; esta es la moneda real detectada por IP.
+      if (data.currency) currencyCode = data.currency;
+    })
+    .catch(() => { /* si falla, nos quedamos con el idioma del navegador */ });
+}
+
+// ═══════════════ LANGUAGE ═══════════════
+function toggleLangMenu() {
+  document.getElementById('langMenu').classList.toggle('open');
+}
+
+function setLang(l) {
+  lang = l;
+  currencyCode = CURRENCY_CODE_BY_LANG[l] || currencyCode;
+  document.getElementById('langMenu').classList.remove('open');
+  document.querySelectorAll('.lang-option').forEach(o => {
+    o.classList.toggle('active', o.dataset.lang === l);
+  });
+  applyLang();
+  renderAll();
+}
+
+function applyLang() {
+  document.getElementById('langCurrent').textContent = lang.toUpperCase();
+  document.documentElement.lang = lang;
+  document.getElementById('tagline').textContent = t('tagline');
+  document.getElementById('counterLabel').textContent = t('counterLabel');
+  document.getElementById('settledText').textContent = t('counterSettled');
+  document.getElementById('titleProfiles').textContent = t('profiles');
+  document.getElementById('titleBill').textContent = t('bill');
+  document.getElementById('scanLabel').textContent = t('scan');
+  document.getElementById('addItemLabel').textContent = t('addItem');
+  document.getElementById('cancelAddLabel').textContent = t('cancel');
+  document.getElementById('confirmAddLabel').textContent = t('add');
+  document.getElementById('reviewLabel').textContent = t('review');
+  document.getElementById('newName').placeholder = t('itemName');
+  document.getElementById('modalInstruction').textContent = t('modalInstruction');
+  document.getElementById('doneLabel').textContent = t('done');
+  document.getElementById('allLabel').textContent = t('splitAll');
+  document.getElementById('clearLabel').textContent = t('clear');
+  document.getElementById('summaryTitle').textContent = t('summaryTitle');
+  document.getElementById('closeSummaryLabel').textContent = t('close');
+  document.getElementById('shareLabel').textContent = t('link');
+  document.getElementById('counterCurrency').textContent = curr();
+  // Converter + ad
+  document.getElementById('convTitle').textContent = t('convTitle');
+  document.getElementById('convAmountLabel').textContent = t('convAmount');
+  document.getElementById('convFromLabel').textContent = t('convFrom');
+  document.getElementById('convToLabel').textContent = t('convTo');
+  document.getElementById('convRatesNote').textContent = t('convRatesNote');
+  document.getElementById('convCrossSell').innerHTML = `${t('convCross')} <b id="convCrossLink" onclick="closeConverter()" style="cursor:pointer;">${t('convCrossLink')}</b>`;
+  document.getElementById('adLabel').textContent = t('adLabel');
+  document.getElementById('adRemove').textContent = t('adRemove');
+  const tipLabelEl = document.getElementById('tipLabel');
+  if (tipLabelEl) tipLabelEl.textContent = t('tipLabel');
+  document.getElementById('historyTitle').textContent = t('historyTitle');
+  document.getElementById('closeHistoryLabel').textContent = t('close');
+  document.getElementById('scanCancelLabel').textContent = t('cancel');
+  document.getElementById('scanConfirmLabel').textContent = t('scanConfirmLabel');
+}
+
+// ═══════════════ PEOPLE ═══════════════
+function addPerson(name) {
+  const id = nextPersonId++;
+  const color = PALETTE[(people.length) % PALETTE.length];
+  people.push({ id, name: name || `${t('person')} ${people.length + 1}`, color });
+  renderProfiles();
+}
+
+function removePerson(id) {
+  people = people.filter(p => p.id !== id);
+  Object.keys(assignments).forEach(itemId => {
+    if (assignments[itemId]) delete assignments[itemId][id];
+  });
+  renderAll();
+}
+
+function renameProfile(id, name) {
+  const p = people.find(x => x.id === id);
+  if (p) p.name = name;
+}
+
+function renderProfiles() {
+  const row = document.getElementById('profilesRow');
+  row.innerHTML = people.map(p => `
+    <div class="profile-chip">
+      <div class="profile-dot" style="background:${p.color}">${p.name.charAt(0)}</div>
+      <input type="text" value="${escapeHtml(p.name)}" placeholder="${t('itemName')}"
+        oninput="renameProfile(${p.id}, this.value); renderProfilesDots();"
+        style="width:${Math.max(50, p.name.length*9)}px"/>
+      <button class="profile-remove" onclick="removePerson(${p.id})" aria-label="Remove">×</button>
+    </div>
+  `).join('') + `
+    <button class="profile-add" onclick="addPerson()">+ ${t('addPerson')}</button>
+  `;
+}
+
+function renderProfilesDots() {
+  document.querySelectorAll('.profile-chip').forEach((chip, i) => {
+    const p = people[i];
+    if (p) {
+      const dot = chip.querySelector('.profile-dot');
+      if (dot) dot.textContent = p.name.charAt(0);
+    }
+  });
+}
+
+// ═══════════════ ITEMS ═══════════════
+function addItemData(qty, name, price) {
+  const id = nextItemId++;
+  items.push({ id, qty: qty||1, name: name||'', price: price||0 });
+  assignments[id] = {};
+}
+
+function removeItem(id) {
+  items = items.filter(i => i.id !== id);
+  delete assignments[id];
+  renderAll();
+}
+
+function toggleAddForm() {
+  const form = document.getElementById('addForm');
+  const btn = document.getElementById('addItemBtn');
+  form.classList.toggle('open');
+  btn.classList.toggle('hidden');
+  if (form.classList.contains('open')) {
+    document.getElementById('newName').focus();
+  }
+}
+
+function cancelAddForm() {
+  document.getElementById('addForm').classList.remove('open');
+  document.getElementById('addItemBtn').classList.remove('hidden');
+  clearAddForm();
+}
+
+function clearAddForm() {
+  document.getElementById('newQty').value = '1';
+  document.getElementById('newName').value = '';
+  document.getElementById('newPrice').value = '';
+}
+
+function confirmAddItem() {
+  const qty = parseInt(document.getElementById('newQty').value) || 1;
+  const name = document.getElementById('newName').value.trim();
+  const price = parseFloat(document.getElementById('newPrice').value) || 0;
+  if (!name) { showToast(t('itemName')); document.getElementById('newName').focus(); return; }
+  if (price <= 0) { document.getElementById('newPrice').focus(); return; }
+  addItemData(qty, name, price);
+  clearAddForm();
+  cancelAddForm();
+  renderAll();
+}
+
+function itemIsAssigned(itemId) {
+  const a = assignments[itemId] || {};
+  return Object.values(a).some(shares => shares > 0);
+}
+
+function renderItems() {
+  const list = document.getElementById('itemsList');
+  list.innerHTML = items.map(it => {
+    const a = assignments[it.id] || {};
+    const assignedPeople = Object.keys(a).filter(pid => a[pid] > 0);
+    const dots = assignedPeople.map(pid => {
+      const p = people.find(x => x.id == pid);
+      if (!p) return '';
+      return `<div class="mini-dot" style="background:${p.color}">${p.name.charAt(0)}</div>`;
+    }).join('');
+    const assigned = itemIsAssigned(it.id);
+    return `
+      <div class="item-card ${assigned ? 'assigned' : ''}" onclick="openSplitModal(${it.id})">
+        <div class="item-qty">${it.qty}×</div>
+        <div class="item-info">
+          <div class="item-name">${escapeHtml(it.name) || '—'}</div>
+          ${dots ? `<div class="item-assignees">${dots}</div>` : ''}
+        </div>
+        <div class="item-price">${curr()}${it.price.toFixed(2)}</div>
+        ${assigned ? '' : `<button class="item-remove" onclick="event.stopPropagation(); removeItem(${it.id})">×</button>`}
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════ COUNTER ═══════════════
+function billTotal() {
+  return items.reduce((sum, it) => sum + it.price, 0);
+}
+
+function assignedTotal() {
+  // Sum price of every item that has at least one share assigned
+  return items.reduce((sum, it) => sum + (itemIsAssigned(it.id) ? it.price : 0), 0);
+}
+
+function pendingTotal() {
+  return billTotal() - assignedTotal();
+}
+
+let counterInterval = null;
+function updateCounter() {
+  const total = billTotal();
+  const pending = pendingTotal();
+  const assigned = assignedTotal();
+  const pct = total > 0 ? (assigned / total) * 100 : 0;
+
+  animateCounterTo(pending);
+
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('counterSub').textContent = `${t('total')}: ${curr()}${total.toFixed(2)}`;
+
+  const hero = document.getElementById('counterHero');
+  const settled = (total > 0 && pending < 0.005);
+  hero.classList.toggle('settled', settled);
+
+  // Review button enabled only when settled
+  const btn = document.getElementById('reviewBtn');
+  btn.disabled = !settled && total > 0;
+}
+
+function animateCounterTo(target) {
+  const el = document.getElementById('counterValue');
+  const current = parseFloat(el.textContent.replace(/,/g,'')) || 0;
+  const diff = target - current;
+  // Cancel any in-flight animation and start fresh
+  if (counterInterval) { clearInterval(counterInterval); counterInterval = null; }
+  if (Math.abs(diff) < 0.005) { el.textContent = Math.max(0, target).toFixed(2); return; }
+  const steps = 16;
+  let step = 0;
+  counterInterval = setInterval(() => {
+    step++;
+    const val = current + diff * (step/steps);
+    el.textContent = Math.max(0, val).toFixed(2);
+    if (step >= steps) {
+      el.textContent = Math.max(0, target).toFixed(2);
+      clearInterval(counterInterval);
+      counterInterval = null;
+    }
+  }, 16);
+}
+
+// ═══════════════ SPLIT MODAL ═══════════════
+function openSplitModal(itemId) {
+  activeItemId = itemId;
+  const it = items.find(i => i.id === itemId);
+  if (!it) return;
+  document.getElementById('modalItemName').textContent = `${it.qty}× ${it.name}`;
+  updateModalPrice();
+  renderDropTargets();
+  renderSplitPreview();
+  document.getElementById('splitModal').classList.add('open');
+}
+
+function closeSplitModal() {
+  document.getElementById('splitModal').classList.remove('open');
+  activeItemId = null;
+  renderAll();
+}
+
+function updateModalPrice() {
+  const it = items.find(i => i.id === activeItemId);
+  if (!it) return;
+  const a = assignments[it.id] || {};
+  const totalShares = Object.values(a).reduce((s,v) => s+v, 0);
+  let txt = `${curr()}${it.price.toFixed(2)}`;
+  if (totalShares > 0) {
+    const per = it.price / totalShares;
+    txt += ` · ${curr()}${per.toFixed(2)} ${t('each')} (${totalShares})`;
+  }
+  document.getElementById('modalItemPrice').innerHTML = `<b>${txt}</b>`;
+}
+
+function renderDropTargets() {
+  const a = assignments[activeItemId] || {};
+  document.getElementById('dropTargets').innerHTML = people.map(p => {
+    const shares = a[p.id] || 0;
+    return `
+      <div class="drop-target" onclick="addShare(${p.id})" data-person="${p.id}">
+        <div class="dt-count ${shares>0?'show':''}">${shares}</div>
+        <div class="dt-avatar" style="background:${p.color}">${p.name.charAt(0)}</div>
+        <div class="dt-name">${escapeHtml(p.name)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSplitPreview() {
+  const a = assignments[activeItemId] || {};
+  const it = items.find(i => i.id === activeItemId);
+  const entries = Object.entries(a).filter(([,s]) => s > 0);
+  const preview = document.getElementById('splitPreview');
+  if (entries.length === 0) {
+    preview.innerHTML = `<span class="split-empty">${t('splitEmpty')}</span>`;
+    return;
+  }
+  const totalShares = entries.reduce((s,[,v]) => s+v, 0);
+  preview.innerHTML = entries.map(([pid, shares]) => {
+    const p = people.find(x => x.id == pid);
+    if (!p) return '';
+    const amount = (it.price / totalShares) * shares;
+    return `
+      <div class="split-tag">
+        <div class="st-dot" style="background:${p.color}">${p.name.charAt(0)}</div>
+        <span>${escapeHtml(p.name)}</span>
+        <span class="st-amount">${curr()}${amount.toFixed(2)}</span>
+        <button class="st-remove" onclick="removeShare(${pid})">×</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function addShare(personId) {
+  if (!assignments[activeItemId]) assignments[activeItemId] = {};
+  assignments[activeItemId][personId] = (assignments[activeItemId][personId] || 0) + 1;
+  refreshModal();
+}
+
+function assignToAll() {
+  assignments[activeItemId] = {};
+  people.forEach(p => { assignments[activeItemId][p.id] = 1; });
+  refreshModal();
+}
+
+function clearAssignment() {
+  assignments[activeItemId] = {};
+  refreshModal();
+}
+
+function removeShare(personId) {
+  if (!assignments[activeItemId]) return;
+  const cur = assignments[activeItemId][personId] || 0;
+  if (cur <= 1) delete assignments[activeItemId][personId];
+  else assignments[activeItemId][personId] = cur - 1;
+  refreshModal();
+}
+
+function refreshModal() {
+  updateModalPrice();
+  renderDropTargets();
+  renderSplitPreview();
+}
+
+// ═══════════════ SUMMARY ═══════════════
+let summaryTipPct = 0;
+
+function setSummaryTip(pct) {
+  summaryTipPct = pct;
+  document.getElementById('summaryCustomTip').style.display = 'none';
+  document.querySelectorAll('.stip-btn:not(.stip-custom)').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.tip) === pct);
+  });
+  document.querySelector('.stip-custom').classList.remove('active');
+  renderSummaryList();
+}
+
+function focusSummaryCustomTip() {
+  const input = document.getElementById('summaryCustomTip');
+  input.style.display = 'block';
+  input.focus();
+  document.querySelectorAll('.stip-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.stip-custom').classList.add('active');
+}
+
+function onSummaryCustomTip(val) {
+  summaryTipPct = parseFloat(val) || 0;
+  renderSummaryList();
+}
+
+function computeSummary() {
+  const totals = {};
+  const personItems = {};
+  people.forEach(p => { totals[p.id] = 0; personItems[p.id] = []; });
+
+  items.forEach(it => {
+    const a = assignments[it.id] || {};
+    const entries = Object.entries(a).filter(([,s]) => s > 0);
+    if (entries.length === 0) return;
+    const totalShares = entries.reduce((s,[,v]) => s+v, 0);
+    entries.forEach(([pid, shares]) => {
+      const p = parseInt(pid);
+      if (totals[p] === undefined) return;
+      totals[p] += (it.price / totalShares) * shares;
+      const label = shares > 1 ? `${it.name} (${shares})` : it.name;
+      personItems[p].push(label);
+    });
+  });
+  return { totals, personItems };
+}
+
+function renderSummaryList() {
+  const { totals, personItems } = computeSummary();
+  const tipMult = 1 + summaryTipPct / 100;
+
+  document.getElementById('summaryPeopleList').innerHTML = people.map(p => {
+    const base = totals[p.id];
+    const withTip = base * tipMult;
+    const tipNote = summaryTipPct > 0
+      ? `<div class="sp-tip-note">${curr()}${base.toFixed(2)} + ${summaryTipPct}%</div>`
+      : '';
+    return `
+    <div class="summary-person-row">
+      <div class="sp-avatar" style="background:${p.color}">${p.name.charAt(0)}</div>
+      <div class="sp-info">
+        <div class="sp-name">${escapeHtml(p.name)}</div>
+        <div class="sp-items">${personItems[p.id].map(escapeHtml).join(', ') || t('nothingAssigned')}</div>
+      </div>
+      <div class="sp-amount-wrap">
+        <div class="sp-amount">${curr()}${withTip.toFixed(2)}</div>
+        ${tipNote}
+      </div>
+    </div>
+  `;}).join('');
+
+  const grand = Object.values(totals).reduce((a,b)=>a+b,0) * tipMult;
+  const tipTotal = Object.values(totals).reduce((a,b)=>a+b,0) * (summaryTipPct/100);
+  let sub = `${t('total')}: ${curr()}${grand.toFixed(2)}`;
+  if (summaryTipPct > 0) sub += ` · ${t('tipIncluded')} ${curr()}${tipTotal.toFixed(2)}`;
+  document.getElementById('summarySubtitle').textContent = sub;
+}
+
+function openSummary() {
+  renderSummaryList();
+  document.getElementById('summaryModal').classList.add('open');
+}
+
+function closeSummary() {
+  document.getElementById('summaryModal').classList.remove('open');
+}
+
+// Arma el JSON que se guarda en el servidor: gente, ítems, asignaciones
+// y los montos ya calculados (sin propina — la propina se guarda aparte
+// y se aplica al momento de mostrar la cuenta compartida).
+function buildSharePayload() {
+  const { totals, personItems } = computeSummary();
+  return {
+    people: people.map(p => ({ id: p.id, name: p.name, color: p.color })),
+    items: items.map(i => ({ id: i.id, qty: i.qty, name: i.name, price: i.price })),
+    assignments: assignments,
+    totals: totals,
+    personItems: personItems,
+  };
+}
+
+async function shareResults() {
+  try {
+    const res = await fetch('/api/bills', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: '',
+        currency: currencyCode,
+        lang: lang,
+        tip_pct: summaryTipPct,
+        payload: buildSharePayload(),
+      }),
+    });
+    if (!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    const fullUrl = window.location.origin + data.url;
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(fullUrl).catch(() => {});
+    }
+    showToast(t('shareMsg'));
+  } catch (e) {
+    showToast(t('shareError'));
+  }
+}
+
+// ═══════════════ HISTORY ═══════════════
+// Símbolo a mostrar según el código de moneda guardado en cada cuenta
+// (independiente del idioma actual, porque una cuenta vieja pudo
+// haberse creado con otro idioma/moneda).
+const CURRENCY_SYMBOLS_BY_CODE = {
+  USD:'$', EUR:'€', GBP:'£', CLP:'$', MXN:'$', ARS:'$', BRL:'R$',
+  COP:'$', PEN:'S/', JPY:'¥', CAD:'$', AUD:'$', CHF:'Fr', CNY:'¥', INR:'₹'
+};
+
+function openHistory() {
+  document.getElementById('historyModal').classList.add('open');
+  document.getElementById('historyList').innerHTML = `<div class="history-empty">${t('loading')}</div>`;
+  fetch('/api/history')
+    .then(r => r.json())
+    .then(data => renderHistoryList(data.bills || []))
+    .catch(() => renderHistoryList([]));
+}
+
+function closeHistory() {
+  document.getElementById('historyModal').classList.remove('open');
+}
+
+function renderHistoryList(bills) {
+  const list = document.getElementById('historyList');
+  if (!bills.length) {
+    list.innerHTML = `<div class="history-empty">${t('historyEmpty')}</div>`;
+    return;
+  }
+  list.innerHTML = bills.map(b => {
+    const date = (b.created_at || '').slice(0, 10);
+    const sym = CURRENCY_SYMBOLS_BY_CODE[b.currency] || '$';
+    return `
+      <a class="history-row" href="/s/${b.share_id}">
+        <div class="history-icon">🧾</div>
+        <div class="history-info">
+          <div class="history-title">${escapeHtml(b.title || t('untitledBill'))}</div>
+          <div class="history-date">${date}</div>
+        </div>
+        <div class="history-amount">${sym}${b.total.toFixed(2)}</div>
+      </a>
+    `;
+  }).join('');
+}
+
+// Cierra el historial al hacer click fuera de la tarjeta
+document.getElementById('historyModal').addEventListener('click', e => {
+  if (e.target.id === 'historyModal') closeHistory();
+});
+
+// ═══════════════ SCAN RECEIPT (OCR) — Fase 3 ═══════════════
+let scanItemsDraft = [];      // ítems editables en la pantalla de revisión
+let scanNextDraftId = 1;
+
+function triggerScanReceipt() {
+  document.getElementById('receiptFileInput').click();
+}
+
+function handleReceiptFileSelected(event) {
+  const file = event.target.files[0];
+  event.target.value = '';  // así se puede volver a elegir la misma foto después
+  if (!file) return;
+  openScanModal();
+  renderScanLoading();
+  uploadReceiptImage(file);
+}
+
+function openScanModal() {
+  document.getElementById('scanModalTitle').textContent = t('scanReviewTitle');
+  document.getElementById('scanConfirmBtn').disabled = true;
+  document.getElementById('scanModal').classList.add('open');
+}
+
+function closeScanModal() {
+  document.getElementById('scanModal').classList.remove('open');
+  scanItemsDraft = [];
+}
+
+function renderScanLoading() {
+  document.getElementById('scanModalBody').innerHTML = `
+    <div style="text-align:center;padding:40px 10px;">
+      <div class="scan-spinner"></div>
+      <div style="margin-top:16px;color:var(--ink-dim);font-size:14px;">${t('scanLoading')}</div>
+    </div>
+  `;
+}
+
+async function uploadReceiptImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+  try {
+    const res = await fetch('/api/scan-receipt', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!data.success) {
+      closeScanModal();
+      showToast(data.error || t('scanError'));
+      return;
+    }
+    scanItemsDraft = (data.items || []).map(it => ({
+      id: scanNextDraftId++,
+      qty: it.qty || 1,
+      name: it.name || '',
+      price: (it.price === undefined) ? null : it.price,
+      confidence: it.confidence,
+    }));
+    renderScanReview();
+  } catch (e) {
+    closeScanModal();
+    showToast(t('scanError'));
+  }
+}
+
+function renderScanReview() {
+  document.getElementById('scanConfirmBtn').disabled = false;
+  const emptyMsg = scanItemsDraft.length === 0
+    ? `<div class="scan-empty-msg">${t('scanEmpty')}</div>`
+    : '';
+
+  document.getElementById('scanModalBody').innerHTML = `
+    ${emptyMsg}
+    <div class="scan-review-list" id="scanReviewList"></div>
+    <button class="add-item-btn" style="margin-top:12px;" onclick="addScanDraftRow()">
+      <span>+</span> <span>${t('addItem')}</span>
+    </button>
+  `;
+  renderScanDraftList();
+}
+
+function renderScanDraftList() {
+  const list = document.getElementById('scanReviewList');
+  list.innerHTML = scanItemsDraft.map(it => {
+    const lowConf = it.confidence === 'low' || it.price === null;
+    return `
+      <div class="scan-item-row ${lowConf ? 'low-conf' : ''}">
+        ${lowConf ? '<span class="scan-item-warn">⚠️</span>' : ''}
+        <input class="scan-qty-input" type="number" min="1" value="${it.qty}"
+          oninput="updateScanDraft(${it.id}, 'qty', this.value)"/>
+        <input class="scan-name-input" type="text" value="${escapeHtml(it.name)}" placeholder="${t('itemName')}"
+          oninput="updateScanDraft(${it.id}, 'name', this.value)"/>
+        <input class="scan-price-input" type="number" min="0" step="0.01" value="${it.price !== null ? it.price : ''}" placeholder="0.00"
+          oninput="updateScanDraft(${it.id}, 'price', this.value)"/>
+        <button class="scan-item-remove" onclick="removeScanDraft(${it.id})" aria-label="Remove">×</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateScanDraft(id, field, value) {
+  const it = scanItemsDraft.find(x => x.id === id);
+  if (!it) return;
+  if (field === 'qty') it.qty = parseInt(value) || 1;
+  else if (field === 'price') it.price = (value === '') ? null : (parseFloat(value) || 0);
+  else it.name = value;
+}
+
+function removeScanDraft(id) {
+  scanItemsDraft = scanItemsDraft.filter(x => x.id !== id);
+  renderScanDraftList();
+}
+
+function addScanDraftRow() {
+  scanItemsDraft.push({ id: scanNextDraftId++, qty: 1, name: '', price: null, confidence: 'manual' });
+  renderScanReview();
+}
+
+function confirmScanImport() {
+  const valid = scanItemsDraft.filter(it => it.name.trim() && it.price !== null && it.price > 0);
+  valid.forEach(it => addItemData(it.qty, it.name.trim(), it.price));
+  closeScanModal();
+  renderAll();
+  if (valid.length > 0) showToast(t('scanImported'));
+}
+
+// Cierra el modal de revisión al hacer click fuera de la tarjeta
+document.getElementById('scanModal').addEventListener('click', e => {
+  if (e.target.id === 'scanModal') closeScanModal();
+});
+
+// ═══════════════ RENDER ALL ═══════════════
+function renderAll() {
+  renderProfiles();
+  renderItems();
+  updateCounter();
+}
+
+// ═══════════════ UTILS ═══════════════
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// Close menus on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.lang-select')) {
+    document.getElementById('langMenu').classList.remove('open');
+  }
+});
+
+// Close modals on overlay click
+document.getElementById('splitModal').addEventListener('click', e => {
+  if (e.target.id === 'splitModal') closeSplitModal();
+});
+document.getElementById('summaryModal').addEventListener('click', e => {
+  if (e.target.id === 'summaryModal') closeSummary();
+});
+
+// Enter key in add form
+document.getElementById('newPrice').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmAddItem();
+});
+
+// ═══════════════ CURRENCY CONVERTER ═══════════════
+// Tasas iniciales de respaldo. Se reemplazan con las reales del servidor
+// apenas carga la app (ver fetchRates()).
+let CONV_RATES = {
+  USD:1, EUR:0.92, GBP:0.79, CLP:950, MXN:17.1, ARS:900,
+  BRL:5.0, COP:3900, PEN:3.75, JPY:149, CAD:1.36, AUD:1.53,
+  CHF:0.90, CNY:7.24, INR:83.1
+};
+
+function fetchRates() {
+  fetch('/api/rates')
+    .then(r => r.json())
+    .then(data => {
+      if (data.rates) {
+        CONV_RATES = data.rates;
+        // Si el conversor está abierto, recalculamos con las tasas frescas
+        if (document.getElementById('convModal').classList.contains('open')) {
+          doConvert();
+        }
+      }
+    })
+    .catch(() => { /* nos quedamos con las tasas de respaldo */ });
+}
+const CONV_FLAGS = {
+  USD:'🇺🇸', EUR:'🇪🇺', GBP:'🇬🇧', CLP:'🇨🇱', MXN:'🇲🇽', ARS:'🇦🇷',
+  BRL:'🇧🇷', COP:'🇨🇴', PEN:'🇵🇪', JPY:'🇯🇵', CAD:'🇨🇦', AUD:'🇦🇺',
+  CHF:'🇨🇭', CNY:'🇨🇳', INR:'🇮🇳'
+};
+
+function buildConvSelects() {
+  const opts = Object.keys(CONV_RATES).map(c =>
+    `<option value="${c}">${CONV_FLAGS[c]} ${c}</option>`
+  ).join('');
+  const from = document.getElementById('convFrom');
+  const to = document.getElementById('convTo');
+  from.innerHTML = opts;
+  to.innerHTML = opts;
+  from.value = 'USD';
+  to.value = 'EUR';
+}
+
+function openConverter() {
+  document.getElementById('convModal').classList.add('open');
+  doConvert();
+}
+function closeConverter() {
+  document.getElementById('convModal').classList.remove('open');
+}
+
+function doConvert() {
+  const amt = parseFloat(document.getElementById('convAmount').value);
+  const from = document.getElementById('convFrom').value;
+  const to = document.getElementById('convTo').value;
+  const valEl = document.getElementById('convResultVal');
+  const subEl = document.getElementById('convResultSub');
+  if (!amt || amt <= 0) {
+    valEl.textContent = '—';
+    subEl.textContent = t('convEnterAmount');
+    return;
+  }
+  const converted = (amt / CONV_RATES[from]) * CONV_RATES[to];
+  const fmt = (n, c) => new Intl.NumberFormat(lang, { style:'currency', currency:c, maximumFractionDigits:2 }).format(n);
+  valEl.textContent = fmt(converted, to);
+  subEl.textContent = `${fmt(amt, from)} · 1 ${from} = ${(CONV_RATES[to]/CONV_RATES[from]).toFixed(4)} ${to}`;
+}
+
+function swapConv() {
+  const from = document.getElementById('convFrom');
+  const to = document.getElementById('convTo');
+  [from.value, to.value] = [to.value, from.value];
+  doConvert();
+}
+
+// Close converter on overlay click
+document.getElementById('convModal').addEventListener('click', e => {
+  if (e.target.id === 'convModal') closeConverter();
+});
+
+init();
+</script>
+</body>
+</html>

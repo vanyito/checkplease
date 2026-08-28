@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="{{ bill.lang }}">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Check Please! — {{ bill.title or 'Cuenta compartida' }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --night: #151B2E;
+  --night-2: #1E2740;
+  --surface: #1E2740;
+  --line: #303B5C;
+  --ink: #F4F6FB;
+  --ink-dim: #8B95B5;
+  --ink-faint: #5A6489;
+  --amber: #FFB84D;
+  --coral: #FF5C4D;
+  --mint: #4ADE80;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+html, body {
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, #1E2740 0%, transparent 60%),
+    radial-gradient(circle at 90% 10%, #FFB84D0a 0%, transparent 40%);
+}
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; padding: 24px 20px 40px; }
+
+.badge-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  margin-bottom: 18px;
+}
+
+.logo-word {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.logo-word b { color: var(--coral); }
+
+.bill-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.bill-meta { font-size: 12px; color: var(--ink-faint); margin-bottom: 24px; }
+
+.summary-card {
+  background: var(--night-2);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.summary-header { padding: 20px 22px 14px; text-align: center; border-bottom: 1px solid var(--line); }
+.summary-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+.summary-subtitle { font-size: 13px; color: var(--ink-dim); margin-top: 4px; }
+
+.summary-list { padding: 10px; }
+.summary-person-row { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; }
+.sp-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #fff;
+  text-transform: uppercase; flex-shrink: 0;
+}
+.sp-info { flex: 1; min-width: 0; }
+.sp-name { font-size: 15px; font-weight: 600; }
+.sp-items { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+.sp-amount-wrap { text-align: right; flex-shrink: 0; }
+.sp-amount { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--amber); font-variant-numeric: tabular-nums; }
+.sp-tip-note { font-size: 10px; color: var(--ink-faint); margin-top: 2px; }
+
+.summary-footer { padding: 16px 20px 20px; border-top: 1px solid var(--line); text-align: center; }
+.cta-new {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--coral), var(--amber));
+  color: #fff;
+  text-decoration: none;
+  padding: 13px 24px;
+  border-radius: 14px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="logo-word">check <b>please!</b></div>
+  <div class="badge-readonly">👁️ Solo lectura — no editable</div>
+  <div class="bill-title">{{ bill.title or 'Cuenta compartida' }}</div>
+  <div class="bill-meta">{{ bill.created_at[:10] }}</div>
+
+  <div class="summary-card">
+    <div class="summary-header">
+      <div class="summary-title">Quién paga qué</div>
+      <div class="summary-subtitle">
+        Total: {{ currency_symbol }}{{ "%.2f"|format(grand_total) }}
+        {% if bill.tip_pct %} · propina incluida {{ currency_symbol }}{{ "%.2f"|format(tip_total) }}{% endif %}
+      </div>
+    </div>
+    <div class="summary-list">
+      {% for person in bill.payload.people %}
+        {% set pid = person.id|string %}
+        {% set base = bill.payload.totals.get(pid, 0) %}
+        {% set with_tip = base * (1 + (bill.tip_pct or 0) / 100) %}
+        <div class="summary-person-row">
+          <div class="sp-avatar" style="background:{{ person.color }}">{{ person.name[0] }}</div>
+          <div class="sp-info">
+            <div class="sp-name">{{ person.name }}</div>
+            <div class="sp-items">{{ (bill.payload.personItems.get(pid, []) | join(', ')) or 'Sin ítems' }}</div>
+          </div>
+          <div class="sp-amount-wrap">
+            <div class="sp-amount">{{ currency_symbol }}{{ "%.2f"|format(with_tip) }}</div>
+            {% if bill.tip_pct %}<div class="sp-tip-note">{{ currency_symbol }}{{ "%.2f"|format(base) }} + {{ bill.tip_pct|round(0)|int }}%</div>{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="summary-footer">
+      <a class="cta-new" href="/">Dividir mi propia cuenta →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

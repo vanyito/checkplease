@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Check Please! — Cuenta no encontrada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --night: #151B2E;
+  --night-2: #1E2740;
+  --line: #303B5C;
+  --ink: #F4F6FB;
+  --ink-dim: #8B95B5;
+  --amber: #FFB84D;
+  --coral: #FF5C4D;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+html, body {
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+}
+.emoji { font-size: 48px; margin-bottom: 16px; }
+h1 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+p { color: var(--ink-dim); font-size: 14px; margin-bottom: 28px; }
+a.btn {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--coral), var(--amber));
+  color: #fff;
+  text-decoration: none;
+  padding: 14px 28px;
+  border-radius: 16px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="emoji">🧾💨</div>
+  <h1>Esta cuenta no existe o expiró</h1>
+  <p>El link puede estar mal escrito o la cuenta fue eliminada.</p>
+  <a class="btn" href="/">Crear una cuenta nueva</a>
+</div>
+</body>
+</html>

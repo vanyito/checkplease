@@ -80,6 +80,18 @@ def get_db():
     return conn
 
 
+def _column_exists(conn, table, column):
+    """Chequeo portable de si una columna ya existe, para migraciones livianas."""
+    if USE_POSTGRES:
+        row = conn.execute(
+            "SELECT 1 FROM information_schema.columns WHERE table_name = ? AND column_name = ?",
+            (table, column),
+        ).fetchone()
+        return row is not None
+    rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+    return any(r["name"] == column for r in rows)
+
+
 def init_db():
     """
     Crea la tabla `bills` si todavía no existe. Se llama una vez al
@@ -100,7 +112,8 @@ def init_db():
                 currency    TEXT NOT NULL,
                 lang        TEXT NOT NULL,
                 tip_pct     REAL DEFAULT 0,
-                payload     TEXT NOT NULL
+                payload     TEXT NOT NULL,
+                finalized   INTEGER DEFAULT 0
             )
         """)
         # Índice para que /api/history (filtra por visitor_id) sea rápido.
@@ -109,6 +122,13 @@ def init_db():
             CREATE INDEX IF NOT EXISTS idx_bills_visitor
             ON bills(visitor_id, created_at DESC)
         """)
+        # Migración liviana: si la tabla ya existía de antes de agregar la
+        # edición colaborativa, le falta la columna `finalized`. La
+        # agregamos sin tocar los datos existentes
+        # — las cuentas viejas quedan como finalized=0 (se pueden re-abrir
+        # para editar, que es un comportamiento razonable por defecto).
+        if not _column_exists(conn, "bills", "finalized"):
+            conn.execute("ALTER TABLE bills ADD COLUMN finalized INTEGER DEFAULT 0")
         conn.commit()
     finally:
         conn.close()
@@ -157,6 +177,53 @@ def create_bill(visitor_id, title, currency, lang, tip_pct, payload_dict):
         )
         conn.commit()
         return share_id
+    finally:
+        conn.close()
+
+
+def update_bill(share_id, title, currency, lang, tip_pct, payload_dict):
+    """
+    Actualiza una cuenta existente (edición colaborativa: cualquiera con
+    el link puede seguir agregando gente/ítems mientras no esté
+    finalizada). Devuelve True si se guardó, False si la cuenta no
+    existe o ya fue finalizada (para no pisar un resumen ya cerrado).
+    """
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            """
+            UPDATE bills
+            SET title = ?, currency = ?, lang = ?, tip_pct = ?, payload = ?
+            WHERE share_id = ? AND finalized = 0
+            """,
+            (
+                title or None,
+                currency,
+                lang,
+                tip_pct,
+                json.dumps(payload_dict, ensure_ascii=False),
+                share_id,
+            ),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
+def finalize_bill(share_id):
+    """
+    Marca una cuenta como terminada: a partir de ahora su link muestra
+    el resumen de solo lectura en vez de la app editable, y ya no admite
+    más ediciones vía update_bill(). Devuelve True si la cuenta existía.
+    """
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "UPDATE bills SET finalized = 1 WHERE share_id = ?", (share_id,)
+        )
+        conn.commit()
+        return cur.rowcount > 0
     finally:
         conn.close()
 

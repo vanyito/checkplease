@@ -14,6 +14,11 @@ Divide la cuenta, no la amistad. 🤚
   producción, Gunicorn, puerto dinámico — ver [Deploy](#-deploy-a-producción-render)
   más abajo), pero los pasos de cuenta/dominio todavía los tienes que hacer
   tú a mano siguiendo la guía de esa sección.
+- **Edición colaborativa:** el link para compartir se puede generar desde
+  el principio (botón "Compartir cuenta"), antes de terminar de repartir.
+  Mientras la cuenta no esté finalizada, cualquiera que abra ese link puede
+  seguir agregando gente e ítems — ver la sección
+  [Edición colaborativa](#-edición-colaborativa) más abajo.
 
 Todavía **no** hay cuentas de usuario reales ni pagos — se decidió posponerlo
 hasta que el experimento muestre tracción.
@@ -158,6 +163,32 @@ tesseract --version
 tesseract --list-langs
 ```
 Debe listar al menos `eng` y `spa`.
+
+---
+
+## 🤝 Edición colaborativa
+
+El botón **"Compartir cuenta"** (visible desde el principio, no hace falta
+llegar al resumen) crea el link `/s/<share_id>` de inmediato, aunque la
+cuenta esté vacía o a medio armar. Cualquiera que abra ese link:
+
+- Ve la misma lista de personas e ítems que ya existe.
+- Puede seguir agregando gente, ítems, o repartir porciones — cada cambio
+  se autoguarda solo en el servidor.
+- **No hay sincronización en vivo.** Si dos personas tienen la página
+  abierta al mismo tiempo, cada una ve sus propios cambios de inmediato,
+  pero para ver lo que agregó la otra persona hay que recargar la página.
+  Si ambas guardan casi al mismo tiempo sin haber recargado antes, gana el
+  último guardado (se puede perder el cambio del otro) — es una limitación
+  conocida, aceptable para el tamaño de este proyecto por ahora.
+
+Cuando alguien le da a **"Terminar y compartir resultado"** (dentro del
+resumen), la cuenta queda marcada como finalizada: a partir de ahí, ese
+mismo link `/s/<share_id>` siempre muestra el resumen de solo lectura
+(quién paga qué, con la propina aplicada) y ya no admite más ediciones.
+
+Un link finalizado no se puede reabrir para seguir editando — hay que
+crear una cuenta nueva si hace falta agregar algo después.
 
 ---
 

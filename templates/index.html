@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Check Please! — Split the bill, not the friendship</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo-icon.png') }}"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -75,12 +76,19 @@ body {
 .logo-mark {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
 }
 
-.logo-hand {
-  width: 30px; height: 30px;
+.logo-icon {
+  width: 38px; height: 38px;
   flex-shrink: 0;
+  display: block;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .logo-word {
@@ -172,14 +180,13 @@ body {
 .lang-option .check { margin-left: auto; opacity: 0; }
 .lang-option.active .check { opacity: 1; }
 
-/* ── TAGLINE ── */
+/* ── TAGLINE (integrada bajo el wordmark del logo) ── */
 .tagline {
-  text-align: center;
-  padding: 4px 20px 18px;
-  font-size: 13px;
-  color: var(--ink-faint);
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--amber);
   letter-spacing: 0.2px;
+  line-height: 1.2;
 }
 
 /* ── COUNTER HERO ── */
@@ -335,6 +342,15 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+/* Mensaje cuando todavía no hay personas o ítems agregados */
+.empty-hint {
+  width: 100%;
+  font-size: 13px;
+  color: var(--ink-faint);
+  line-height: 1.4;
+  padding: 2px 0 4px;
 }
 
 .profile-chip {
@@ -1414,21 +1430,11 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
   <!-- TOP BAR -->
   <div class="topbar">
     <div class="logo-mark">
-      <svg class="logo-hand" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- action lines -->
-        <path d="M8 12 L13 17 M4 22 L10 24 M6 33 L12 33" stroke="#FFB84D" stroke-width="2.5" stroke-linecap="round"/>
-        <!-- hand -->
-        <g>
-          <rect x="26" y="8" width="7" height="26" rx="3.5" fill="#F0A868"/>
-          <rect x="34" y="10" width="7" height="24" rx="3.5" fill="#F0A868"/>
-          <rect x="18" y="12" width="7" height="22" rx="3.5" fill="#F0A868"/>
-          <rect x="42" y="16" width="6.5" height="18" rx="3.25" fill="#F0A868"/>
-          <rect x="12" y="24" width="8" height="14" rx="4" fill="#F0A868" transform="rotate(-25 16 31)"/>
-          <rect x="16" y="30" width="30" height="20" rx="8" fill="#F0A868"/>
-          <rect x="18" y="46" width="26" height="8" rx="3" fill="#3B5245"/>
-        </g>
-      </svg>
-      <span class="logo-word">check <b>please!</b></span>
+      <img class="logo-icon" src="{{ url_for('static', filename='img/logo-icon.png') }}" alt="Check Please!"/>
+      <div class="logo-text">
+        <span class="logo-word">check <b>please!</b></span>
+        <span class="tagline" id="tagline">Dividimos la cuenta, no la amistad</span>
+      </div>
     </div>
 
     <div style="display:flex;align-items:center;gap:8px;">
@@ -1466,9 +1472,6 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
       </div>
     </div>
   </div>
-
-  <!-- TAGLINE -->
-  <div class="tagline" id="tagline">Dividimos la cuenta, no la amistad</div>
 
   <!-- COUNTER HERO -->
   <div class="counter-hero" id="counterHero">
@@ -1520,6 +1523,9 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
 
   <!-- CTA -->
   <div class="cta-bar">
+    <button class="btn-share2" style="width:100%;margin-bottom:10px;" onclick="shareOrCopyLink()">
+      <span>🔗</span> <span id="collabShareLabel">Compartir cuenta</span>
+    </button>
     <button class="btn-primary" id="reviewBtn" onclick="openSummary()">
       <span id="reviewLabel">Ver resumen</span>
     </button>
@@ -1591,9 +1597,12 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
         oninput="onSummaryCustomTip(this.value)"/>
     </div>
     <div class="summary-footer">
+      <button class="btn-done" style="margin-bottom:10px;" onclick="finalizeBill()">
+        <span>✅</span> <span id="finalizeLabel">Terminar y compartir resultado</span>
+      </button>
       <div class="summary-actions">
-        <button class="btn-share2" onclick="shareResults()"><span>🔗</span> <span id="shareLabel">Link</span></button>
-        <button class="btn-share2" onclick="shareResults()"><span>📱</span> QR</button>
+        <button class="btn-share2" onclick="shareOrCopyLink()"><span>🔗</span> <span id="shareLabel">Link</span></button>
+        <button class="btn-share2" onclick="shareOrCopyLink()"><span>📱</span> QR</button>
       </div>
       <button class="btn-close-summary" onclick="closeSummary()" id="closeSummaryLabel">Cerrar</button>
     </div>
@@ -1660,6 +1669,13 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
 <div class="toast" id="toast"></div>
 
 <script>
+// ═══════════════ ESTADO INICIAL (desde el servidor) ═══════════════
+// Si esta página se sirvió desde /s/<share_id> de una cuenta que todavía
+// no se finalizó, el backend precarga aquí su estado actual — así se
+// puede editar en colaboración (ver app.py: view_shared_bill).
+window.__INITIAL_BILL__ = {{ (initial_bill.payload if initial_bill else none) | tojson }};
+window.__INITIAL_BILL_META__ = {{ ({'share_id': initial_bill.share_id, 'tip_pct': initial_bill.tip_pct, 'lang': initial_bill.lang, 'currency': initial_bill.currency} if initial_bill else none) | tojson }};
+
 // ═══════════════ i18n ═══════════════
 const I18N = {
   es: {
@@ -1695,7 +1711,13 @@ const I18N = {
     scanReviewTitle: 'Revisar ítems', scanLoading: 'Leyendo tu boleta…',
     scanEmpty: 'No pudimos leer ítems claros en esta foto — agrégalos a mano abajo 👇',
     scanError: 'No se pudo leer la boleta', scanConfirmLabel: 'Confirmar e importar',
-    scanImported: 'Ítems agregados a la cuenta'
+    scanImported: 'Ítems agregados a la cuenta',
+    profilesEmpty: 'Agrega a las personas que van a pagar',
+    itemsEmpty: 'Agrega los ítems de la cuenta',
+    collabShareLabel: 'Compartir cuenta',
+    collabLoaded: 'Te uniste a una cuenta compartida — recarga para ver cambios de otros',
+    billFinalizedMsg: 'Esta cuenta ya fue finalizada, no se pueden agregar más cambios',
+    finalizeLabel: 'Terminar y compartir resultado'
   },
   en: {
     tagline: 'Split the bill, not the friendship',
@@ -1730,7 +1752,13 @@ const I18N = {
     scanReviewTitle: 'Review items', scanLoading: 'Reading your receipt…',
     scanEmpty: "We couldn't read clear items in this photo — add them by hand below 👇",
     scanError: 'Could not read the receipt', scanConfirmLabel: 'Confirm & import',
-    scanImported: 'Items added to the bill'
+    scanImported: 'Items added to the bill',
+    profilesEmpty: 'Add the people who are paying',
+    itemsEmpty: 'Add the items on the bill',
+    collabShareLabel: 'Share bill',
+    collabLoaded: "You joined a shared bill — reload to see others' changes",
+    billFinalizedMsg: 'This bill was already finalized, no more changes allowed',
+    finalizeLabel: 'Finish & share result'
   },
   pt: {
     tagline: 'Dividimos a conta, não a amizade',
@@ -1765,7 +1793,13 @@ const I18N = {
     scanReviewTitle: 'Revisar itens', scanLoading: 'Lendo sua conta…',
     scanEmpty: 'Não conseguimos ler itens claros nesta foto — adicione-os manualmente abaixo 👇',
     scanError: 'Não foi possível ler a conta', scanConfirmLabel: 'Confirmar e importar',
-    scanImported: 'Itens adicionados à conta'
+    scanImported: 'Itens adicionados à conta',
+    profilesEmpty: 'Adicione as pessoas que vão pagar',
+    itemsEmpty: 'Adicione os itens da conta',
+    collabShareLabel: 'Compartilhar conta',
+    collabLoaded: 'Você entrou numa conta compartilhada — recarregue para ver mudanças de outros',
+    billFinalizedMsg: 'Esta conta já foi finalizada, não são permitidas mais alterações',
+    finalizeLabel: 'Terminar e compartilhar resultado'
   },
   fr: {
     tagline: "Partagez l'addition, pas l'amitié",
@@ -1800,7 +1834,13 @@ const I18N = {
     scanReviewTitle: 'Vérifier les articles', scanLoading: 'Lecture de votre addition…',
     scanEmpty: "Nous n'avons pas pu lire d'articles clairs sur cette photo — ajoutez-les manuellement ci-dessous 👇",
     scanError: "Impossible de lire l'addition", scanConfirmLabel: 'Confirmer et importer',
-    scanImported: "Articles ajoutés à l'addition"
+    scanImported: "Articles ajoutés à l'addition",
+    profilesEmpty: 'Ajoutez les personnes qui vont payer',
+    itemsEmpty: "Ajoutez les articles de l'addition",
+    collabShareLabel: "Partager l'addition",
+    collabLoaded: "Vous avez rejoint une addition partagée — rechargez pour voir les changements des autres",
+    billFinalizedMsg: "Cette addition est déjà terminée, plus de changements possibles",
+    finalizeLabel: 'Terminer et partager le résultat'
   }
 };
 
@@ -1822,6 +1862,12 @@ let activeItemId = null;
 let nextPersonId = 1;
 let nextItemId = 1;
 
+// Edición colaborativa: si currentShareId está definido, cada cambio se
+// autoguarda en el servidor (ver scheduleAutosave). Se setea al compartir
+// por primera vez, o de entrada si se abrió un link ya compartido.
+let currentShareId = null;
+let isCollaborative = false;
+
 function t(key) { return I18N[lang][key] || key; }
 function pc(personId) {
   const p = people.find(x => x.id === personId);
@@ -1831,20 +1877,45 @@ function curr() { return CURRENCY[lang]; }
 
 // ═══════════════ INIT ═══════════════
 function init() {
-  // Detecta el idioma por IP (llamada real al backend)
-  detectLanguage();
   // Trae las tasas de cambio en vivo desde el backend
   fetchRates();
   buildConvSelects();
-  // seed data
-  addPerson('Alex');
-  addPerson('Bea');
-  addPerson('Cy');
-  addItemData(1, 'Pizza', 24);
-  addItemData(2, 'Vino', 14);
-  addItemData(3, 'Cerveza', 12);
-  addItemData(1, 'Postre', 8);
+
+  // Si este link ya tenía una cuenta guardada (edición colaborativa,
+  // ver /s/<share_id> en app.py), la cargamos en vez de empezar vacío.
+  const initialBill = window.__INITIAL_BILL__;
+  const initialMeta = window.__INITIAL_BILL_META__;
+  if (initialBill && initialMeta) {
+    loadBillIntoState(initialBill, initialMeta);
+  } else {
+    // Cuenta nueva: detecta el idioma por IP (llamada real al backend)
+    detectLanguage();
+  }
   renderAll();
+}
+
+function loadBillIntoState(payload, meta) {
+  currentShareId = meta.share_id;
+  isCollaborative = true;
+
+  people = (payload.people || []).map(p => ({ ...p }));
+  items = (payload.items || []).map(i => ({ ...i }));
+  assignments = {};
+  Object.keys(payload.assignments || {}).forEach(itemId => {
+    assignments[itemId] = { ...(payload.assignments[itemId] || {}) };
+  });
+  nextPersonId = people.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+  nextItemId = items.reduce((m, i) => Math.max(m, i.id), 0) + 1;
+  summaryTipPct = meta.tip_pct || 0;
+
+  // Se muestra en el idioma/moneda con que se compartió la cuenta —
+  // así todos los que colaboran ven lo mismo, en vez de traducirla
+  // distinto para cada visitante.
+  if (meta.lang && I18N[meta.lang]) { lang = meta.lang; }
+  if (meta.currency) { currencyCode = meta.currency; }
+  applyLang();
+
+  showToast(t('collabLoaded'));
 }
 
 function detectLanguage() {
@@ -1921,6 +1992,8 @@ function applyLang() {
   document.getElementById('closeHistoryLabel').textContent = t('close');
   document.getElementById('scanCancelLabel').textContent = t('cancel');
   document.getElementById('scanConfirmLabel').textContent = t('scanConfirmLabel');
+  document.getElementById('collabShareLabel').textContent = t('collabShareLabel');
+  document.getElementById('finalizeLabel').textContent = t('finalizeLabel');
 }
 
 // ═══════════════ PEOPLE ═══════════════
@@ -1929,6 +2002,8 @@ function addPerson(name) {
   const color = PALETTE[(people.length) % PALETTE.length];
   people.push({ id, name: name || `${t('person')} ${people.length + 1}`, color });
   renderProfiles();
+  updateCounter();
+  scheduleAutosave();
 }
 
 function removePerson(id) {
@@ -1937,16 +2012,21 @@ function removePerson(id) {
     if (assignments[itemId]) delete assignments[itemId][id];
   });
   renderAll();
+  scheduleAutosave();
 }
 
 function renameProfile(id, name) {
   const p = people.find(x => x.id === id);
   if (p) p.name = name;
+  scheduleAutosave();
 }
 
 function renderProfiles() {
   const row = document.getElementById('profilesRow');
-  row.innerHTML = people.map(p => `
+  const emptyHint = people.length === 0
+    ? `<div class="empty-hint">${t('profilesEmpty')}</div>`
+    : '';
+  row.innerHTML = emptyHint + people.map(p => `
     <div class="profile-chip">
       <div class="profile-dot" style="background:${p.color}">${p.name.charAt(0)}</div>
       <input type="text" value="${escapeHtml(p.name)}" placeholder="${t('itemName')}"
@@ -1980,6 +2060,7 @@ function removeItem(id) {
   items = items.filter(i => i.id !== id);
   delete assignments[id];
   renderAll();
+  scheduleAutosave();
 }
 
 function toggleAddForm() {
@@ -2014,6 +2095,7 @@ function confirmAddItem() {
   clearAddForm();
   cancelAddForm();
   renderAll();
+  scheduleAutosave();
 }
 
 function itemIsAssigned(itemId) {
@@ -2023,6 +2105,10 @@ function itemIsAssigned(itemId) {
 
 function renderItems() {
   const list = document.getElementById('itemsList');
+  if (items.length === 0) {
+    list.innerHTML = `<div class="empty-hint">${t('itemsEmpty')}</div>`;
+    return;
+  }
   list.innerHTML = items.map(it => {
     const a = assignments[it.id] || {};
     const assignedPeople = Object.keys(a).filter(pid => a[pid] > 0);
@@ -2076,9 +2162,10 @@ function updateCounter() {
   const settled = (total > 0 && pending < 0.005);
   hero.classList.toggle('settled', settled);
 
-  // Review button enabled only when settled
+  // El botón de resumen necesita al menos una persona y un ítem, y que
+  // todo lo que hay esté repartido (settled).
   const btn = document.getElementById('reviewBtn');
-  btn.disabled = !settled && total > 0;
+  btn.disabled = people.length === 0 || items.length === 0 || (!settled && total > 0);
 }
 
 function animateCounterTo(target) {
@@ -2118,6 +2205,7 @@ function closeSplitModal() {
   document.getElementById('splitModal').classList.remove('open');
   activeItemId = null;
   renderAll();
+  scheduleAutosave();
 }
 
 function updateModalPrice() {
@@ -2214,6 +2302,7 @@ function setSummaryTip(pct) {
   });
   document.querySelector('.stip-custom').classList.remove('active');
   renderSummaryList();
+  scheduleAutosave();
 }
 
 function focusSummaryCustomTip() {
@@ -2227,6 +2316,7 @@ function focusSummaryCustomTip() {
 function onSummaryCustomTip(val) {
   summaryTipPct = parseFloat(val) || 0;
   renderSummaryList();
+  scheduleAutosave();
 }
 
 function computeSummary() {
@@ -2304,10 +2394,59 @@ function buildSharePayload() {
   };
 }
 
-async function shareResults() {
+// Comparte el link (creándolo la primera vez) o simplemente lo vuelve a
+// copiar si ya existe. Es la misma función para el botón "Compartir
+// cuenta" del inicio y los botones "Link"/"QR" del resumen — apenas hay
+// un share_id, ambos apuntan al mismo link colaborativo.
+async function shareOrCopyLink() {
+  if (!currentShareId) {
+    try {
+      const res = await fetch('/api/bills', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: '',
+          currency: currencyCode,
+          lang: lang,
+          tip_pct: summaryTipPct,
+          payload: buildSharePayload(),
+        }),
+      });
+      if (!res.ok) throw new Error('bad response');
+      const data = await res.json();
+      currentShareId = data.share_id;
+      isCollaborative = true;
+      // Así, si recargan la página, siguen en el mismo link compartido.
+      window.history.pushState({}, '', data.url);
+    } catch (e) {
+      showToast(t('shareError'));
+      return;
+    }
+  }
+
+  const fullUrl = window.location.origin + '/s/' + currentShareId;
+  if (navigator.clipboard) {
+    await navigator.clipboard.writeText(fullUrl).catch(() => {});
+  }
+  showToast(t('shareMsg'));
+}
+
+// ═══════════════ AUTOGUARDADO (edición colaborativa) ═══════════════
+// Solo autoguarda si la cuenta ya se compartió (currentShareId existe).
+// Antes de eso, todo vive únicamente en el navegador, igual que siempre.
+let autosaveTimer = null;
+
+function scheduleAutosave() {
+  if (!currentShareId) return;
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(saveBillNow, 700);
+}
+
+async function saveBillNow() {
+  if (!currentShareId) return;
   try {
-    const res = await fetch('/api/bills', {
-      method: 'POST',
+    const res = await fetch(`/api/bills/${currentShareId}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: '',
@@ -2317,13 +2456,29 @@ async function shareResults() {
         payload: buildSharePayload(),
       }),
     });
-    if (!res.ok) throw new Error('bad response');
-    const data = await res.json();
-    const fullUrl = window.location.origin + data.url;
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(fullUrl).catch(() => {});
+    if (res.status === 409) {
+      showToast(t('billFinalizedMsg'));
     }
-    showToast(t('shareMsg'));
+  } catch (e) {
+    // Si falla el autoguardado no interrumpimos al usuario; sigue
+    // trabajando local y se reintenta con el próximo cambio.
+  }
+}
+
+// Cierra la edición: guarda lo último, marca la cuenta como terminada, y
+// lleva al resumen de solo lectura de ese mismo link.
+async function finalizeBill() {
+  if (!currentShareId) {
+    await shareOrCopyLink();
+    if (!currentShareId) return; // shareOrCopyLink ya mostró el error
+  } else {
+    clearTimeout(autosaveTimer);
+    await saveBillNow();
+  }
+  try {
+    const res = await fetch(`/api/bills/${currentShareId}/finalize`, { method: 'POST' });
+    if (!res.ok) throw new Error('finalize failed');
+    window.location.href = `/s/${currentShareId}`;
   } catch (e) {
     showToast(t('shareError'));
   }
@@ -2498,7 +2653,10 @@ function confirmScanImport() {
   valid.forEach(it => addItemData(it.qty, it.name.trim(), it.price));
   closeScanModal();
   renderAll();
-  if (valid.length > 0) showToast(t('scanImported'));
+  if (valid.length > 0) {
+    showToast(t('scanImported'));
+    scheduleAutosave();
+  }
 }
 
 // Cierra el modal de revisión al hacer click fuera de la tarjeta

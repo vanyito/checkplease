@@ -1,19 +1,24 @@
 """
-Check Please! — Flask backend (Fase 1 + Fase 2 + Fase 3)
-==========================================================
+Check Please! — Flask backend (Fase 1 + Fase 2 + Fase 3 + edición colaborativa)
+================================================================================
 Sirve la aplicación y expone los endpoints:
-  - /api/geo          -> detecta el idioma según la IP de quien visita
-  - /api/rates        -> tasas de cambio en vivo (con caché)
-  - /api/bills        -> guarda una cuenta y genera su link para compartir (Fase 2)
-  - /s/<id>           -> muestra una cuenta compartida, de solo lectura (Fase 2)
-  - /api/history      -> lista las cuentas creadas por este visitante (Fase 2)
-  - /api/scan-receipt -> OCR de una foto de boleta con Tesseract (Fase 3)
+  - /api/geo               -> detecta el idioma según la IP de quien visita
+  - /api/rates             -> tasas de cambio en vivo (con caché)
+  - /api/bills             -> crea una cuenta y devuelve su link para compartir
+  - /api/bills/<id>        -> [PUT] autoguardado mientras se edita entre varios
+  - /api/bills/<id>/finalize -> [POST] cierra la edición, el link pasa a solo lectura
+  - /s/<id>                -> si no está finalizada: app editable con el estado
+                               actual (cualquiera con el link puede seguir
+                               agregando cosas). Si ya está finalizada: resumen
+                               de solo lectura.
+  - /api/history           -> lista las cuentas creadas por este visitante
+  - /api/scan-receipt      -> OCR de una foto de boleta con Tesseract (Fase 3)
 
-La Fase 2 agrega persistencia con SQLite (ver db.py) y una cookie
-anónima (cp_visitor) para identificar al visitante sin necesidad de
-login — eso vendrá recién en la Fase 4. La Fase 3 agrega escaneo de
-boletas con OCR local (ver ocr.py) — requiere el binario de Tesseract
-instalado en el sistema (ver README).
+Persistencia con SQLite en desarrollo / PostgreSQL en producción (ver
+db.py), identificando al visitante con una cookie anónima (cp_visitor)
+sin necesidad de login — eso vendrá recién en una fase futura. El
+escaneo de boletas usa OCR local (ver ocr.py) — requiere el binario de
+Tesseract instalado en el sistema (ver README).
 """
 
 import os
@@ -66,8 +71,8 @@ COUNTRY_TO_CURRENCY = {
 
 @app.route("/")
 def index():
-    """Sirve la página principal (la app de una sola página)."""
-    return render_template("index.html")
+    """Sirve la página principal (la app de una sola página), vacía."""
+    return render_template("index.html", initial_bill=None)
 
 
 # ──────────────────────────────────────────────────────────
@@ -244,8 +249,61 @@ def api_create_bill():
 
 
 # ──────────────────────────────────────────────────────────
-#  ENDPOINT: GET /s/<share_id> — ver una cuenta compartida (solo lectura)
+#  ENDPOINT: PUT /api/bills/<share_id> — autoguardado colaborativo
 # ──────────────────────────────────────────────────────────
+
+@app.route("/api/bills/<share_id>", methods=["PUT"])
+def api_update_bill(share_id):
+    """
+    Actualiza una cuenta ya compartida (autoguardado mientras se arma
+    entre varias personas — cualquiera con el link puede editar).
+    Si la cuenta ya fue finalizada, rechaza el cambio: el link pasó a
+    ser de solo lectura y no debería seguir recibiendo ediciones.
+    """
+    data = request.get_json(silent=True) or {}
+
+    payload = data.get("payload")
+    if not isinstance(payload, dict):
+        return jsonify({"error": "payload es requerido"}), 400
+
+    title = (data.get("title") or "").strip()[:120]
+    currency = data.get("currency") or "USD"
+    lang = data.get("lang") or "es"
+    try:
+        tip_pct = float(data.get("tip_pct") or 0)
+    except (TypeError, ValueError):
+        tip_pct = 0
+
+    saved = db.update_bill(share_id, title, currency, lang, tip_pct, payload)
+    if not saved:
+        return jsonify({"error": "Esta cuenta no existe o ya fue finalizada."}), 409
+
+    return jsonify({"ok": True})
+
+
+# ──────────────────────────────────────────────────────────
+#  ENDPOINT: POST /api/bills/<share_id>/finalize — cerrar la edición
+# ──────────────────────────────────────────────────────────
+
+@app.route("/api/bills/<share_id>/finalize", methods=["POST"])
+def api_finalize_bill(share_id):
+    """
+    Marca la cuenta como terminada. A partir de ahora su link (/s/<id>)
+    muestra el resumen de solo lectura en vez de la app editable.
+    """
+    ok = db.finalize_bill(share_id)
+    if not ok:
+        return jsonify({"error": "Esta cuenta no existe."}), 404
+    return jsonify({"ok": True, "url": f"/s/{share_id}"})
+
+
+# ──────────────────────────────────────────────────────────
+#  ENDPOINT: GET /s/<share_id> — abrir una cuenta compartida
+# ──────────────────────────────────────────────────────────
+# Mientras la cuenta no esté finalizada, este link abre la app editable
+# precargada con lo que ya hay guardado (edición colaborativa: cualquiera
+# con el link puede seguir agregando gente/ítems). Una vez finalizada,
+# el mismo link muestra el resumen de solo lectura de siempre.
 
 # El símbolo se guarda a partir del código de moneda para no repetir
 # el mapeo del frontend (CURRENCY) en el backend.
@@ -258,10 +316,12 @@ CURRENCY_SYMBOLS = {
 
 @app.route("/s/<share_id>")
 def view_shared_bill(share_id):
-    """Muestra el resumen de una cuenta guardada. No se puede editar."""
     bill = db.get_bill_by_share_id(share_id)
     if not bill:
         return render_template("shared_not_found.html"), 404
+
+    if not bill["finalized"]:
+        return render_template("index.html", initial_bill=bill)
 
     # El total base (sin propina) sale de los montos ya calculados por
     # el frontend al momento de compartir (payload["totals"]).

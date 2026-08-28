@@ -201,21 +201,33 @@ Render completa sola.
 2. **Crear la base de datos en Render:** New → PostgreSQL → plan gratuito.
    Copia la "Internal Database URL" que te entrega.
 3. **Crear el Web Service en Render:** New → Web Service → conecta el repo.
-   - Build Command: `./render-build.sh` (instala el binario de Tesseract
-     con `apt-get` antes de instalar las dependencias de Python — ver
-     [`render-build.sh`](render-build.sh))
+   - Root Directory: **vacío** (déjalo en blanco — `app.py` está en la raíz
+     del repo, no en una subcarpeta).
+   - Build Command: `pip install -r requirements.txt`
    - Start Command: `gunicorn app:app`
    - Plan: Free
 4. **Variables de entorno del Web Service:** agrega `DATABASE_URL` con el
    valor copiado en el paso 2.
 5. Verifica la URL `.onrender.com` que Render asigna: la home, `/api/geo`,
-   `/api/rates`, compartir una cuenta y abrir su link, el historial, y el
-   escaneo de boletas.
+   `/api/rates`, compartir una cuenta y abrir su link, el historial.
 
 **Nota:** en el plan gratuito, Render duerme el servicio tras 15 minutos sin
 tráfico — la siguiente visita tarda ~30-60 segundos en responder mientras
 despierta. Es esperable, no es un bug. La base PostgreSQL gratuita también
-expira a los 90 días (se puede recrear).
+expira (Render mostró 30 días al crearla) — se puede recrear cuando toque.
+
+### ⚠️ Escaneo de boletas (OCR): pendiente en producción
+El entorno nativo de Python en el plan gratuito de Render **no permite
+`apt-get`** durante el build (sistema de archivos de solo lectura), así que
+no se pudo instalar el binario de Tesseract ahí. `/api/scan-receipt`
+responde `success: false` con un mensaje claro en vez de romperse — el
+resto de la app (compartir, historial, conversor) funciona normal.
+
+Queda [`render-build.sh`](render-build.sh) en el repo, sin usar por ahora,
+como referencia de qué instalar. Para que el OCR funcione en producción
+hace falta migrar el Web Service a un deploy con **Docker** (ahí sí se
+puede correr `apt-get install tesseract-ocr` con permisos de root durante
+la construcción de la imagen) — pendiente para una iteración futura.
 
 ### Dominio propio
 Una vez que la URL de Render funcione bien, en el dashboard del Web Service
@@ -239,9 +251,12 @@ Puedes forzar un idioma manualmente con el selector 🌐 de arriba.
 
 ## ⏭️ Qué falta
 
-- **Terminar el deploy (Fase 4):** el código ya está listo — falta crear el
-  repo en GitHub, la cuenta en Render, y comprar el dominio (pasos que hace
-  el humano, ver sección [Deploy](#-deploy-a-producción-render)).
+- **App en internet:** ✅ ya está desplegada en Render y verificada
+  (home, `/api/geo`, `/api/rates`, compartir, historial funcionando en
+  producción con PostgreSQL real).
+- **OCR en producción:** pendiente — ver la nota de arriba sobre Docker.
+- **Dominio propio:** falta comprarlo y conectarlo (ver sección
+  [Deploy](#-deploy-a-producción-render)) — paso que hace el humano.
 - **Más adelante (sin fecha):** cuando haya tráfico real, activar Google
   AdSense. Cuando valga la pena monetizar, retomar login y plan Pro con
   pagos — pausado deliberadamente por ahora.
